@@ -1,0 +1,5 @@
+/* Reset minimal — les styles applicatifs sont dans App.css. */
+html, body, #root {
+  margin: 0;
+  height: 100%;
+}
