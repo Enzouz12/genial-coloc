@@ -24,3 +24,31 @@ export function distanceToCampusKm(point: { lat: number; lng: number }): number 
 function toRad(deg: number): number {
   return (deg * Math.PI) / 180;
 }
+
+export interface GeocodeResult {
+  lat: number;
+  lng: number;
+  label: string;
+}
+
+/**
+ * Géocodage via la Base Adresse Nationale (api-adresse.data.gouv.fr).
+ * Gratuit, sans clé, optimisé pour la France. Biaisé vers Lyon.
+ */
+export async function geocode(query: string): Promise<GeocodeResult | null> {
+  const url = new URL("https://api-adresse.data.gouv.fr/search/");
+  url.searchParams.set("q", query);
+  url.searchParams.set("limit", "1");
+  // Biais géographique vers Lyon pour désambiguïser les quartiers.
+  url.searchParams.set("lat", "45.7578");
+  url.searchParams.set("lon", "4.8320");
+
+  const res = await fetch(url);
+  if (!res.ok) return null;
+  const data = await res.json();
+  const feature = data.features?.[0];
+  if (!feature) return null;
+
+  const [lng, lat] = feature.geometry.coordinates;
+  return { lat, lng, label: feature.properties.label };
+}
