@@ -1,6 +1,9 @@
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, Marker, Popup, Tooltip } from "react-leaflet";
 import L from "leaflet";
+import type { Offer } from "../types";
 import { CAMPUS, LYON_CENTER } from "../config";
+import { priceColor } from "../lib/color";
+import { distanceToCampusKm } from "../lib/geo";
 
 // Icône dédiée pour le campus (sinon Leaflet cherche des assets cassés par Vite).
 const campusIcon = L.divIcon({
@@ -10,7 +13,13 @@ const campusIcon = L.divIcon({
   iconAnchor: [14, 14],
 });
 
-export function MapView() {
+interface Props {
+  offers: Offer[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+}
+
+export function MapView({ offers, selectedId, onSelect }: Props) {
   return (
     <MapContainer
       center={[LYON_CENTER.lat, LYON_CENTER.lng]}
@@ -29,6 +38,42 @@ export function MapView() {
           Point de référence
         </Popup>
       </Marker>
+
+      {offers.map((o) => {
+        const dist = distanceToCampusKm(o);
+        const isSelected = o.id === selectedId;
+        return (
+          <CircleMarker
+            key={o.id}
+            center={[o.lat, o.lng]}
+            radius={isSelected ? 14 : 10}
+            pathOptions={{
+              color: isSelected ? "#111" : "#fff",
+              weight: isSelected ? 3 : 1.5,
+              fillColor: priceColor(o.price),
+              fillOpacity: 0.9,
+            }}
+            eventHandlers={{ click: () => onSelect(o.id) }}
+          >
+            <Tooltip direction="top">
+              {o.price} € · {dist.toFixed(1)} km
+            </Tooltip>
+            <Popup>
+              <strong>{o.title}</strong>
+              <br />
+              {o.price} € CC
+              {o.surface ? ` · ${o.surface} m²` : ""}
+              {o.rooms ? ` · T${o.rooms}` : ""}
+              <br />
+              {dist.toFixed(1)} km du campus
+              <br />
+              <a href={o.url} target="_blank" rel="noreferrer">
+                Voir l'annonce
+              </a>
+            </Popup>
+          </CircleMarker>
+        );
+      })}
     </MapContainer>
   );
 }
