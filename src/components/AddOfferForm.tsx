@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Offer } from "../types";
 import { ROOMMATES } from "../config";
 import { geocode } from "../lib/geo";
+import { parsePasted } from "../lib/parseSeLoger";
 
 interface Props {
   onAdd: (offer: Offer) => void;
@@ -18,6 +19,15 @@ export function AddOfferForm({ onAdd }: Props) {
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  /** Pré-remplit les champs à partir d'un copier-coller d'annonce. */
+  function handlePaste(text: string) {
+    const d = parsePasted(text);
+    if (d.url) setUrl(d.url);
+    if (d.price) setPrice(String(d.price));
+    if (d.surface) setSurface(String(d.surface));
+    if (d.rooms) setRooms(String(d.rooms));
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -70,6 +80,15 @@ export function AddOfferForm({ onAdd }: Props) {
   return (
     <form className="form" onSubmit={handleSubmit}>
       <h2>Ajouter une offre</h2>
+
+      <label>
+        Coller l'annonce (pré-remplit prix/surface/lien)
+        <textarea
+          rows={2}
+          placeholder="Colle ici le texte ou le lien SeLoger…"
+          onChange={(e) => handlePaste(e.target.value)}
+        />
+      </label>
 
       <label>
         Titre *
