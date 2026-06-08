@@ -1,70 +1,60 @@
-# 🏡 Génial Colloc
+# Génial Colloc
 
-Comparateur visuel d'offres de location pour faciliter une recherche de
-colocation à **Lyon**. On ajoute des annonces (SeLoger pour l'instant), elles
-s'affichent sur une carte, colorées selon le budget, avec la distance jusqu'à
-l'**Université Lyon 2 — Campus Porte des Alpes**.
-
-![Stack](https://img.shields.io/badge/React-19-61dafb) ![TS](https://img.shields.io/badge/TypeScript-3178c6) ![Vite](https://img.shields.io/badge/Vite-8-646cff) ![Leaflet](https://img.shields.io/badge/Leaflet-OpenStreetMap-199900)
+Application web de comparaison d'annonces de location pour une recherche de colocation à Lyon. Les annonces ajoutées sont affichées sur une carte, colorées selon le loyer, avec une estimation du temps de trajet jusqu'à l'Université Lyon 2 Campus Porte des Alpes.
 
 ## Fonctionnalités
 
-- 🗺️ **Carte interactive** (Leaflet + OpenStreetMap, sans clé API)
-- 🟢🔴 **Code couleur budget** : vert (≤ 700 €) → rouge (1100 €, le plafond)
-- 📍 **Distance au campus** calculée pour chaque offre (Haversine)
-- 🔎 **Géocodage** des quartiers via la Base Adresse Nationale (api-adresse.data.gouv.fr)
-- 📝 **Saisie semi-manuelle** : coller une annonce pré-remplit prix / surface / lien
-- 👥 Champ « ajouté par » pour distinguer les apports de chaque colocataire
+- Carte interactive Leaflet avec tuiles OpenStreetMap
+- Marqueurs colorés du vert au rouge selon le loyer, de 700 à 1100 euros
+- Distance et temps de trajet estimé calculés pour chaque annonce
+- Classement du temps de trajet par paliers de 15, 30, 45 et 60 minutes
+- Géocodage des adresses via la Base Adresse Nationale
+- Saisie assistée : un texte collé pré-remplit le loyer, la surface et le lien
+- Attribution de chaque annonce à un colocataire
 
-## Stack technique
+## Stack
 
-| Domaine        | Choix                                            |
-| -------------- | ------------------------------------------------ |
-| Langage        | TypeScript                                       |
-| Front          | React 19 + Vite                                  |
-| Cartographie   | Leaflet via react-leaflet, tuiles OpenStreetMap  |
-| Géocodage      | Base Adresse Nationale (gratuit, sans clé)       |
-| Stockage       | `localStorage` (couche abstraite, voir ci-dessous) |
+| Domaine      | Choix                                |
+| ------------ | ------------------------------------ |
+| Langage      | TypeScript                           |
+| Front        | React 19, Vite                       |
+| Cartographie | react-leaflet, tuiles OpenStreetMap  |
+| Géocodage    | Base Adresse Nationale               |
+| Stockage     | localStorage                         |
 
 ## Architecture
 
-La persistance passe par une interface unique `OfferStore`
-([src/lib/storage.ts](src/lib/storage.ts)). Aujourd'hui implémentée avec
-`localStorage` ; migrer vers **Supabase** (collaboration temps réel) ne
-nécessitera que de réécrire ce module, sans toucher aux composants.
+La persistance passe par l'interface OfferStore définie dans src/lib/storage.ts. L'implémentation actuelle repose sur localStorage. Le passage à Supabase pour une collaboration en temps réel se fait en réécrivant ce seul module, sans modifier les composants.
 
 ```
 src/
-├── config.ts            # campus, bornes de budget, colocataires
-├── types.ts             # modèle Offer
-├── lib/
-│   ├── geo.ts           # Haversine + géocodage BAN
-│   ├── color.ts         # dégradé prix → couleur
-│   ├── parseSeLoger.ts  # extraction heuristique depuis un copier-coller
-│   └── storage.ts       # couche de persistance (swappable Supabase)
-└── components/
-    ├── MapView.tsx
-    ├── AddOfferForm.tsx
-    └── OfferList.tsx
+  config.ts            campus, paliers de budget et de trajet, colocataires
+  types.ts             modèle Offer
+  lib/
+    geo.ts             distance Haversine, temps de trajet, géocodage
+    color.ts           échelle loyer vers couleur
+    parseSeLoger.ts    extraction depuis un texte collé
+    storage.ts         couche de persistance
+  components/
+    MapView.tsx
+    AddOfferForm.tsx
+    OfferList.tsx
 ```
 
-## Démarrer
+## Démarrage
 
-```bash
+```
 npm install
 npm run dev
 ```
 
-## Roadmap
+## Feuille de route
 
-- [x] **B** — Saisie semi-manuelle des offres
-- [ ] **C** — Extension navigateur « Ajouter à Génial Colloc » depuis SeLoger
-- [ ] Stockage Supabase (collaboration temps réel à 2)
-- [ ] Temps de trajet réel (vélo / TCL) via OSRM ou OpenRouteService
-- [ ] Filtres (prix max, surface min, distance max)
+- Extension navigateur pour ajouter une annonce depuis SeLoger
+- Stockage Supabase pour la collaboration en temps réel
+- Temps de trajet routier via OSRM ou OpenRouteService
+- Filtres par loyer, surface et temps de trajet
 
-## Note sur SeLoger
+## SeLoger
 
-SeLoger est protégé par DataDome et ne peut pas être scrapé depuis le
-navigateur ; d'où l'approche semi-manuelle (coller l'annonce) et la future
-extension côté client.
+SeLoger est protégé par DataDome et ne peut pas être interrogé depuis le navigateur. La saisie repose sur un collage manuel du contenu de l'annonce.
