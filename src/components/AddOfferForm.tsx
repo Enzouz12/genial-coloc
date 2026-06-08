@@ -43,7 +43,7 @@ export function AddOfferForm({ onAdd }: Props) {
     try {
       const geo = await geocode(location);
       if (!geo) {
-        setError("Adresse introuvable. Précise le quartier ou la rue.");
+        setError("Adresse introuvable dans l'agglomération lyonnaise. Ajoute la ville ou le code postal.");
         return;
       }
 

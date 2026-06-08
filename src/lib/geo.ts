@@ -1,4 +1,7 @@
-import { CAMPUS, COMMUTE } from "../config";
+import { CAMPUS, COMMUTE, LYON_CENTER } from "../config";
+
+/** Rayon maximal accepté autour de Lyon pour un résultat de géocodage (km). */
+const LYON_MAX_RADIUS_KM = 30;
 
 /** Distance à vol d'oiseau (km) entre deux points — formule de Haversine. */
 export function haversineKm(
@@ -70,17 +73,23 @@ export interface GeocodeResult {
 export async function geocode(query: string): Promise<GeocodeResult | null> {
   const url = new URL("https://api-adresse.data.gouv.fr/search/");
   url.searchParams.set("q", query);
-  url.searchParams.set("limit", "1");
+  url.searchParams.set("limit", "5");
   // Biais géographique vers Lyon pour désambiguïser les quartiers.
-  url.searchParams.set("lat", "45.7578");
-  url.searchParams.set("lon", "4.8320");
+  url.searchParams.set("lat", String(LYON_CENTER.lat));
+  url.searchParams.set("lon", String(LYON_CENTER.lng));
 
   const res = await fetch(url);
   if (!res.ok) return null;
   const data = await res.json();
-  const feature = data.features?.[0];
-  if (!feature) return null;
 
-  const [lng, lat] = feature.geometry.coordinates;
-  return { lat, lng, label: feature.properties.label };
+  // On retient le premier résultat situé dans l'agglomération lyonnaise.
+  // Le biais ci-dessus ne fait que reclasser, il ne filtre pas : sans ce
+  // garde-fou, "Écully centre" peut renvoyer une commune homonyme lointaine.
+  for (const feature of data.features ?? []) {
+    const [lng, lat] = feature.geometry.coordinates;
+    if (haversineKm({ lat, lng }, LYON_CENTER) <= LYON_MAX_RADIUS_KM) {
+      return { lat, lng, label: feature.properties.label };
+    }
+  }
+  return null;
 }
