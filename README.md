@@ -11,7 +11,7 @@ Application web de comparaison d'annonces de location pour une recherche de colo
 - Repli sur une estimation par distance si le service de routage est indisponible
 - Classement du temps de trajet par paliers de 15, 30, 45 et 60 minutes
 - Géocodage des adresses via la Base Adresse Nationale, restreint à l'agglomération lyonnaise
-- Saisie assistée : un texte collé pré-remplit le loyer, la surface et le lien
+- Saisie assistée : coller un lien SeLoger pré-remplit la zone, le type et le titre ; coller le texte de l'annonce ajoute le loyer et la surface
 - Attribution de chaque annonce à un colocataire
 
 ## Stack
