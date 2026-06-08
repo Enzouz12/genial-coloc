@@ -17,6 +17,10 @@ export interface Offer {
   /** Coordonnées résolues via la Base Adresse Nationale. */
   lat: number;
   lng: number;
+  /** Temps de trajet TCL jusqu'au campus, en minutes (matin de semaine). */
+  transitMin?: number;
+  /** Temps de trajet à vélo jusqu'au campus, en minutes. */
+  bikeMin?: number;
   /** Qui a ajouté l'offre (toi / ton·ta coloc). */
   addedBy?: string;
   /** Notes libres (étage, meublé, dispo...). */

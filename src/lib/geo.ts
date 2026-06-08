@@ -39,9 +39,8 @@ export interface CommuteBucket {
   label: string;
 }
 
-/** Classe le temps de trajet d'une offre dans le palier de 15 min le plus proche. */
-export function commuteBucket(point: { lat: number; lng: number }): CommuteBucket {
-  const minutes = estimatedCommuteMinutes(point);
+/** Range une durée en minutes dans le palier de 15 min le plus proche. */
+export function bucketFromMinutes(minutes: number): CommuteBucket {
   const { thresholds } = COMMUTE;
   const last = thresholds[thresholds.length - 1];
   const nearest = thresholds.find((t) => minutes <= t + 7.5);
@@ -50,6 +49,19 @@ export function commuteBucket(point: { lat: number; lng: number }): CommuteBucke
     return { minutes, threshold: 0, label: `> ${formatMinutes(last)}` };
   }
   return { minutes, threshold: nearest, label: `~ ${formatMinutes(nearest)}` };
+}
+
+/**
+ * Palier de trajet d'une offre. Utilise le temps TCL réel s'il a été calculé,
+ * sinon l'estimation par distance.
+ */
+export function commuteBucket(offer: {
+  lat: number;
+  lng: number;
+  transitMin?: number;
+}): CommuteBucket {
+  const minutes = offer.transitMin ?? estimatedCommuteMinutes(offer);
+  return bucketFromMinutes(minutes);
 }
 
 function formatMinutes(m: number): string {

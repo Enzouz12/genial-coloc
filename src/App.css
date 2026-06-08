@@ -121,6 +121,7 @@ body {
 .commute-45 { background: rgba(234, 179, 8, 0.18); color: #eab308; }
 .commute-60 { background: rgba(249, 115, 22, 0.18); color: #fb923c; }
 .commute-plus { background: rgba(239, 68, 68, 0.18); color: #f87171; }
+.offer-commute { display: flex; gap: 10px; font-size: 12px; color: var(--text); margin-top: 3px; }
 .offer-sub { font-size: 12px; color: #6b7280; margin-top: 2px; }
 .offer-notes { font-size: 12px; margin-top: 4px; font-style: italic; color: var(--muted); }
 .offer-actions { display: flex; gap: 12px; margin-top: 6px; font-size: 12px; }

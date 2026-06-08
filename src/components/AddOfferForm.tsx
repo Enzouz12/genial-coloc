@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Offer } from "../types";
 import { ROOMMATES } from "../config";
 import { geocode } from "../lib/geo";
+import { routeToCampus } from "../lib/routing";
 import { parsePasted } from "../lib/parseSeLoger";
 
 interface Props {
@@ -47,6 +48,10 @@ export function AddOfferForm({ onAdd }: Props) {
         return;
       }
 
+      // Temps de trajet réels (TCL + vélo). En l'absence de token Navitia,
+      // routeToCampus renvoie {} et l'affichage retombe sur l'estimation.
+      const times = await routeToCampus(geo);
+
       onAdd({
         id: crypto.randomUUID(),
         title: title.trim(),
@@ -57,6 +62,8 @@ export function AddOfferForm({ onAdd }: Props) {
         location: geo.label,
         lat: geo.lat,
         lng: geo.lng,
+        transitMin: times.transitMin,
+        bikeMin: times.bikeMin,
         addedBy,
         notes: notes.trim() || undefined,
         createdAt: Date.now(),
@@ -138,7 +145,7 @@ export function AddOfferForm({ onAdd }: Props) {
       {error && <p className="error">{error}</p>}
 
       <button type="submit" disabled={busy}>
-        {busy ? "Géocodage…" : "Ajouter à la carte"}
+        {busy ? "Calcul en cours…" : "Ajouter à la carte"}
       </button>
     </form>
   );

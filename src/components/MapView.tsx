@@ -68,6 +68,8 @@ export function MapView({ offers, selectedId, onSelect }: Props) {
               <br />
               {dist.toFixed(1)} km · {commute.label} du campus
               <br />
+              {o.transitMin != null && <>TCL {o.transitMin} min<br /></>}
+              {o.bikeMin != null && <>Vélo {o.bikeMin} min<br /></>}
               <a href={o.url} target="_blank" rel="noreferrer">
                 Voir l'annonce
               </a>

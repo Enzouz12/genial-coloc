@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Variables d'environnement (token Navitia, etc.)
+.env
+.env.*
+!.env.example
+
 # Local tooling settings
 .claude/
 

@@ -44,6 +44,12 @@ export function OfferList({ offers, selectedId, onSelect, onRemove }: Props) {
                   {commute.label}
                 </span>
               </div>
+              {(o.transitMin != null || o.bikeMin != null) && (
+                <div className="offer-commute">
+                  {o.transitMin != null && <span>TCL {o.transitMin} min</span>}
+                  {o.bikeMin != null && <span>Vélo {o.bikeMin} min</span>}
+                </div>
+              )}
               <div className="offer-sub">
                 {o.location}
                 {o.addedBy ? ` · ${o.addedBy}` : ""}
