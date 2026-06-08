@@ -25,6 +25,8 @@ export function AddOfferForm({ onAdd }: Props) {
   function handlePaste(text: string) {
     const d = parsePasted(text);
     if (d.url) setUrl(d.url);
+    if (d.title) setTitle(d.title);
+    if (d.location) setLocation(d.location);
     if (d.price) setPrice(String(d.price));
     if (d.surface) setSurface(String(d.surface));
     if (d.rooms) setRooms(String(d.rooms));
