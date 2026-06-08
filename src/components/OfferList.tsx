@@ -1,6 +1,11 @@
 import type { Offer } from "../types";
 import { priceColor } from "../lib/color";
-import { distanceToCampusKm } from "../lib/geo";
+import { distanceToCampusKm, commuteBucket } from "../lib/geo";
+
+/** Classe CSS du badge de trajet selon le palier atteint. */
+function commuteClass(threshold: number): string {
+  return threshold === 0 ? "commute-plus" : `commute-${threshold}`;
+}
 
 interface Props {
   offers: Offer[];
@@ -18,6 +23,7 @@ export function OfferList({ offers, selectedId, onSelect, onRemove }: Props) {
     <ul className="offer-list">
       {offers.map((o) => {
         const dist = distanceToCampusKm(o);
+        const commute = commuteBucket(o);
         return (
           <li
             key={o.id}
@@ -33,7 +39,10 @@ export function OfferList({ offers, selectedId, onSelect, onRemove }: Props) {
               <div className="offer-meta">
                 {o.surface ? `${o.surface} m² · ` : ""}
                 {o.rooms ? `T${o.rooms} · ` : ""}
-                {dist.toFixed(1)} km du campus
+                {dist.toFixed(1)} km
+                <span className={`badge ${commuteClass(commute.threshold)}`}>
+                  {commute.label}
+                </span>
               </div>
               <div className="offer-sub">
                 {o.location}

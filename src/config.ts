@@ -20,5 +20,18 @@ export const BUDGET = {
   red: 1100,
 } as const;
 
+/**
+ * Estimation du temps de trajet jusqu'au campus à partir de la distance
+ * à vol d'oiseau, puis classement par paliers.
+ */
+export const COMMUTE = {
+  /** Vitesse effective moyenne en km/h appliquée à la distance estimée. */
+  averageSpeedKmh: 14,
+  /** Facteur de détour : le trajet réel est plus long que la ligne droite. */
+  detourFactor: 1.35,
+  /** Paliers de temps de trajet, en minutes. */
+  thresholds: [15, 30, 45, 60],
+} as const;
+
 /** Noms des colocataires (pour le champ "ajouté par"). */
 export const ROOMMATES = ["Enzo", "Coloc"] as const;

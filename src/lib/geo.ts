@@ -1,4 +1,4 @@
-import { CAMPUS } from "../config";
+import { CAMPUS, COMMUTE } from "../config";
 
 /** Distance à vol d'oiseau (km) entre deux points — formule de Haversine. */
 export function haversineKm(
@@ -19,6 +19,38 @@ export function haversineKm(
 /** Distance d'une offre jusqu'au campus (km, à vol d'oiseau). */
 export function distanceToCampusKm(point: { lat: number; lng: number }): number {
   return haversineKm(point, CAMPUS);
+}
+
+/** Temps de trajet estimé jusqu'au campus, en minutes. */
+export function estimatedCommuteMinutes(point: { lat: number; lng: number }): number {
+  const km = distanceToCampusKm(point) * COMMUTE.detourFactor;
+  return (km / COMMUTE.averageSpeedKmh) * 60;
+}
+
+export interface CommuteBucket {
+  /** Estimation brute en minutes. */
+  minutes: number;
+  /** Palier atteint (15/30/45/60), ou 0 au-delà du dernier palier. */
+  threshold: number;
+  /** Libellé court, ex. "~ 30 min", "~ 1 h", "> 1 h". */
+  label: string;
+}
+
+/** Classe le temps de trajet d'une offre dans le palier de 15 min le plus proche. */
+export function commuteBucket(point: { lat: number; lng: number }): CommuteBucket {
+  const minutes = estimatedCommuteMinutes(point);
+  const { thresholds } = COMMUTE;
+  const last = thresholds[thresholds.length - 1];
+  const nearest = thresholds.find((t) => minutes <= t + 7.5);
+
+  if (nearest === undefined) {
+    return { minutes, threshold: 0, label: `> ${formatMinutes(last)}` };
+  }
+  return { minutes, threshold: nearest, label: `~ ${formatMinutes(nearest)}` };
+}
+
+function formatMinutes(m: number): string {
+  return m >= 60 ? `${m / 60} h` : `${m} min`;
 }
 
 function toRad(deg: number): number {

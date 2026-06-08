@@ -3,7 +3,7 @@ import L from "leaflet";
 import type { Offer } from "../types";
 import { CAMPUS, LYON_CENTER } from "../config";
 import { priceColor } from "../lib/color";
-import { distanceToCampusKm } from "../lib/geo";
+import { distanceToCampusKm, commuteBucket } from "../lib/geo";
 
 // Icône dédiée pour le campus (sinon Leaflet cherche des assets cassés par Vite).
 const campusIcon = L.divIcon({
@@ -41,6 +41,7 @@ export function MapView({ offers, selectedId, onSelect }: Props) {
 
       {offers.map((o) => {
         const dist = distanceToCampusKm(o);
+        const commute = commuteBucket(o);
         const isSelected = o.id === selectedId;
         return (
           <CircleMarker
@@ -56,7 +57,7 @@ export function MapView({ offers, selectedId, onSelect }: Props) {
             eventHandlers={{ click: () => onSelect(o.id) }}
           >
             <Tooltip direction="top">
-              {o.price} € · {dist.toFixed(1)} km
+              {o.price} € · {commute.label}
             </Tooltip>
             <Popup>
               <strong>{o.title}</strong>
@@ -65,7 +66,7 @@ export function MapView({ offers, selectedId, onSelect }: Props) {
               {o.surface ? ` · ${o.surface} m²` : ""}
               {o.rooms ? ` · T${o.rooms}` : ""}
               <br />
-              {dist.toFixed(1)} km du campus
+              {dist.toFixed(1)} km · {commute.label} du campus
               <br />
               <a href={o.url} target="_blank" rel="noreferrer">
                 Voir l'annonce
