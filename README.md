@@ -6,9 +6,9 @@ Application web de comparaison d'annonces de location pour une recherche de colo
 
 - Carte interactive Leaflet avec tuiles OpenStreetMap
 - Marqueurs colorés du vert au rouge selon le loyer, de 700 à 1100 euros
-- Temps de trajet jusqu'au campus en transport en commun TCL et à vélo, via Navitia
+- Temps de trajet jusqu'au campus en transport en commun TCL et à vélo, via Transitous
 - Heure de référence fixée à un matin de semaine pour comparer les offres
-- Repli sur une estimation par distance en l'absence de token Navitia
+- Repli sur une estimation par distance si le service de routage est indisponible
 - Classement du temps de trajet par paliers de 15, 30, 45 et 60 minutes
 - Géocodage des adresses via la Base Adresse Nationale, restreint à l'agglomération lyonnaise
 - Saisie assistée : un texte collé pré-remplit le loyer, la surface et le lien
@@ -22,18 +22,10 @@ Application web de comparaison d'annonces de location pour une recherche de colo
 | Front        | React 19, Vite                       |
 | Cartographie | react-leaflet, tuiles OpenStreetMap  |
 | Géocodage    | Base Adresse Nationale               |
-| Itinéraires  | Navitia, données TCL SYTRAL          |
+| Itinéraires  | Transitous, moteur MOTIS, données TCL |
 | Stockage     | localStorage                         |
 
-## Configuration
-
-Le calcul d'itinéraire nécessite un token Navitia gratuit.
-
-```
-cp .env.example .env
-```
-
-Renseigner NAVITIA_TOKEN dans .env avec un token obtenu sur https://navitia.io. Le token est injecté côté serveur par le proxy Vite défini dans vite.config.ts et n'est jamais exposé au client. Sans token, l'application reste fonctionnelle et affiche une estimation de trajet par distance.
+Le calcul d'itinéraire utilise l'API publique Transitous. Elle est gratuite, sans clé, et appelée directement depuis le navigateur. Aucune configuration n'est requise.
 
 ## Architecture
 
@@ -45,7 +37,7 @@ src/
   types.ts             modèle Offer
   lib/
     geo.ts             distance Haversine, paliers, géocodage
-    routing.ts         temps de trajet TCL et vélo via Navitia
+    routing.ts         temps de trajet TCL et vélo via Transitous
     color.ts           échelle loyer vers couleur
     parseSeLoger.ts    extraction depuis un texte collé
     storage.ts         couche de persistance
@@ -66,7 +58,6 @@ npm run dev
 
 - Extension navigateur pour ajouter une annonce depuis SeLoger
 - Stockage Supabase pour la collaboration en temps réel
-- Fonction serverless pour relayer Navitia en production
 - Filtres par loyer, surface et temps de trajet
 
 ## SeLoger
