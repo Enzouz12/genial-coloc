@@ -59,27 +59,40 @@
     return line ? line.slice(0, 120) : undefined;
   }
 
-  // "T2 // Rue d'Amboise 69002 LYON" → titre complet + adresse après "//".
-  function splitTitle(raw) {
-    if (!raw) return {};
+  // Extrait l'adresse depuis le titre, quel que soit le format SeLoger :
+  //   "T2 // Rue d'Amboise 69002 LYON"
+  //   "3 rue des Pepinieres Lyon 69005 - T3 Non meuble - 940 €CC"
+  // On découpe sur les séparateurs courants et on garde le segment qui
+  // contient un code postal ; sinon la partie après "//".
+  function addressFromTitle(raw) {
+    if (!raw) return undefined;
+    const segments = raw
+      .split(/\s*(?:\/\/|–|—|\s-\s|·|\|)\s*/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const withPostcode = segments.find((s) => /\b\d{5}\b/.test(s));
+    if (withPostcode) return withPostcode;
     const idx = raw.indexOf("//");
-    if (idx === -1) return { title: raw };
-    return { title: raw, location: raw.slice(idx + 2).trim() || undefined };
+    if (idx !== -1) {
+      const after = raw.slice(idx + 2).trim();
+      if (after) return after;
+    }
+    return undefined;
   }
 
   function extract() {
     const text = fromText();
     const ld = fromJsonLd();
-    const split = splitTitle(pageTitle());
-    // L'adresse vient du h2 (fiable), pas du JSON-LD (souvent l'agence).
+    const title = pageTitle();
+    // L'adresse vient du titre (fiable), pas du JSON-LD (souvent l'agence).
     // Si absente, l'app retombe sur la zone déduite de l'URL.
     return {
       url: location.href.split("#")[0],
-      title: split.title,
+      title: title,
       price: ld.price ?? text.price,
       surface: ld.surface ?? text.surface,
       rooms: ld.rooms ?? text.rooms,
-      location: split.location,
+      location: addressFromTitle(title),
     };
   }
 
