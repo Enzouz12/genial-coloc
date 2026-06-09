@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Génial Colloc",
+  "version": "1.0.0",
+  "description": "Ajoute une annonce SeLoger à Génial Colloc en un clic.",
+  "content_scripts": [
+    {
+      "matches": ["https://www.seloger.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "genial-colloc@enzo",
+      "strict_min_version": "115.0"
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Offer } from "../types";
 import { ROOMMATES } from "../config";
 import { geocode } from "../lib/geo";
@@ -20,6 +20,28 @@ export function AddOfferForm({ onAdd }: Props) {
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Pré-remplissage depuis l'extension navigateur : elle ouvre l'app avec
+  // les données de l'annonce dans le hash (#offer=...).
+  useEffect(() => {
+    const m = window.location.hash.match(/^#offer=(.+)$/);
+    if (!m) return;
+    try {
+      const data = JSON.parse(decodeURIComponent(m[1]));
+      const fromUrl = data.url ? parsePasted(data.url) : {};
+      const url = data.url || fromUrl.url;
+      const t = data.title || fromUrl.title;
+      if (url) setUrl(url);
+      if (t) setTitle(t);
+      if (fromUrl.location) setLocation(fromUrl.location);
+      if (data.price) setPrice(String(data.price));
+      if (data.surface) setSurface(String(data.surface));
+      if (data.rooms) setRooms(String(data.rooms));
+    } catch {
+      // payload invalide, on ignore
+    }
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+  }, []);
 
   /** Pré-remplit les champs à partir d'un copier-coller d'annonce. */
   function handlePaste(text: string) {
