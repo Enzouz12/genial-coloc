@@ -32,15 +32,6 @@
         if (size && out.surface === undefined) out.surface = parseNumber(size);
         const nr = it.numberOfRooms?.value ?? it.numberOfRooms;
         if (nr && out.rooms === undefined) out.rooms = parseNumber(nr);
-        const addr = it.address;
-        if (addr && !out.location) {
-          if (typeof addr === "string") {
-            out.location = addr.trim();
-          } else {
-            const p = [addr.streetAddress, addr.postalCode, addr.addressLocality].filter(Boolean);
-            if (p.length) out.location = p.join(" ");
-          }
-        }
       }
     }
     return out;
@@ -68,16 +59,27 @@
     return line ? line.slice(0, 120) : undefined;
   }
 
+  // "T2 // Rue d'Amboise 69002 LYON" → titre complet + adresse après "//".
+  function splitTitle(raw) {
+    if (!raw) return {};
+    const idx = raw.indexOf("//");
+    if (idx === -1) return { title: raw };
+    return { title: raw, location: raw.slice(idx + 2).trim() || undefined };
+  }
+
   function extract() {
     const text = fromText();
     const ld = fromJsonLd();
+    const split = splitTitle(pageTitle());
+    // L'adresse vient du h2 (fiable), pas du JSON-LD (souvent l'agence).
+    // Si absente, l'app retombe sur la zone déduite de l'URL.
     return {
       url: location.href.split("#")[0],
-      title: pageTitle(),
+      title: split.title,
       price: ld.price ?? text.price,
       surface: ld.surface ?? text.surface,
       rooms: ld.rooms ?? text.rooms,
-      location: ld.location,
+      location: split.location,
     };
   }
 
