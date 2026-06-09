@@ -34,4 +34,4 @@ export const COMMUTE = {
 } as const;
 
 /** Noms des colocataires (pour le champ "ajouté par"). */
-export const ROOMMATES = ["Enzo", "Coloc"] as const;
+export const ROOMMATES = ["Enzo", "Esteban"] as const;
