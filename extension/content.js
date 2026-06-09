@@ -28,9 +28,19 @@
         const offer = it.offers && (Array.isArray(it.offers) ? it.offers[0] : it.offers);
         const price = offer?.price ?? it.price;
         if (price && out.price === undefined) out.price = parseNumber(price);
-        if (it.name && !out.title) out.title = String(it.name).trim();
         const size = it.floorSize?.value ?? it.size;
         if (size && out.surface === undefined) out.surface = parseNumber(size);
+        const nr = it.numberOfRooms?.value ?? it.numberOfRooms;
+        if (nr && out.rooms === undefined) out.rooms = parseNumber(nr);
+        const addr = it.address;
+        if (addr && !out.location) {
+          if (typeof addr === "string") {
+            out.location = addr.trim();
+          } else {
+            const p = [addr.streetAddress, addr.postalCode, addr.addressLocality].filter(Boolean);
+            if (p.length) out.location = p.join(" ");
+          }
+        }
       }
     }
     return out;
@@ -49,15 +59,25 @@
     return out;
   }
 
+  // Titre court de l'annonce : le h2 de la page, sinon l'élément #description.
+  // Première ligne seulement, plafonnée, pour éviter un pavé de texte.
+  function pageTitle() {
+    const el = document.querySelector("h2") || document.getElementById("description");
+    if (!el) return undefined;
+    const line = (el.innerText || "").trim().split("\n")[0].trim();
+    return line ? line.slice(0, 120) : undefined;
+  }
+
   function extract() {
     const text = fromText();
     const ld = fromJsonLd();
     return {
       url: location.href.split("#")[0],
-      title: ld.title || (document.querySelector("h1")?.innerText || "").trim() || undefined,
+      title: pageTitle(),
       price: ld.price ?? text.price,
       surface: ld.surface ?? text.surface,
-      rooms: text.rooms,
+      rooms: ld.rooms ?? text.rooms,
+      location: ld.location,
     };
   }
 

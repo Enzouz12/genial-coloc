@@ -54,29 +54,12 @@ function parseSeLogerUrl(raw: string): Partial<OfferDraft> {
   const idx = parts.indexOf("annonces");
   if (idx === -1 || parts.length < idx + 4) return {};
 
-  const type = humanizeWords(parts[idx + 2]);
   const city = humanizeCity(parts[idx + 3]);
-  const afterCity = parts.slice(idx + 4);
-  const neighborhood =
-    afterCity.length >= 2 ? humanizeWords(afterCity[0]) : undefined;
-
   if (!city) return {};
 
-  const draft: Partial<OfferDraft> = {
-    // La ville (ou arrondissement) est fiable à géocoder : c'est la zone.
-    location: city,
-    title: neighborhood ? `${type} ${city} — ${neighborhood}` : `${type} ${city}`,
-  };
-  return draft;
-}
-
-/** "les-charmilles-sud" → "Les Charmilles Sud". */
-function humanizeWords(slug: string): string {
-  return slug
-    .split("-")
-    .filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
+  // La ville (ou arrondissement) est fiable à géocoder : c'est la zone.
+  // Le titre est généré plus tard au format "Tn // adresse géocodée".
+  return { location: city };
 }
 
 /** "lyon-7eme-69" → "Lyon 7e" ; "bron-69" → "Bron". */
