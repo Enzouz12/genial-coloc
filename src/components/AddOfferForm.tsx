@@ -7,6 +7,9 @@ import { parsePasted } from "../lib/parseSeLoger";
 
 interface Props {
   onAdd: (offer: Offer) => void;
+  onUpdate: (offer: Offer) => void;
+  onCancelEdit: () => void;
+  editing: Offer | null;
 }
 
 /** Titre court au format "T2 // Rue d'Amboise 69002 Lyon". */
@@ -14,7 +17,7 @@ function buildTitle(rooms: number | undefined, label: string): string {
   return rooms ? `T${rooms} // ${label}` : label;
 }
 
-export function AddOfferForm({ onAdd }: Props) {
+export function AddOfferForm({ onAdd, onUpdate, onCancelEdit, editing }: Props) {
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   const [price, setPrice] = useState("");
@@ -26,18 +29,26 @@ export function AddOfferForm({ onAdd }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Pré-remplissage depuis l'extension navigateur : elle ouvre l'app avec
-  // les données de l'annonce dans le hash (#offer=...).
+  function resetForm() {
+    setTitle("");
+    setUrl("");
+    setPrice("");
+    setSurface("");
+    setRooms("");
+    setLocation("");
+    setNotes("");
+    setError(null);
+  }
+
+  // Pré-remplissage depuis l'extension navigateur (hash #offer=...).
   useEffect(() => {
     const m = window.location.hash.match(/^#offer=(.+)$/);
     if (!m) return;
     try {
       const data = JSON.parse(decodeURIComponent(m[1]));
       const fromUrl = data.url ? parsePasted(data.url) : {};
-      const url = data.url || fromUrl.url;
-      if (url) setUrl(url);
-      // Titre fourni par l'extension (h2 de la page). Sinon, il sera généré
-      // au format "Tn // adresse géocodée" au moment de l'ajout.
+      const u = data.url || fromUrl.url;
+      if (u) setUrl(u);
       if (data.title) setTitle(String(data.title));
       const loc = data.location || fromUrl.location;
       if (loc) setLocation(loc);
@@ -50,6 +61,20 @@ export function AddOfferForm({ onAdd }: Props) {
     history.replaceState(null, "", window.location.pathname + window.location.search);
   }, []);
 
+  // Remplit le formulaire quand on passe une offre en édition.
+  useEffect(() => {
+    if (!editing) return;
+    setTitle(editing.title);
+    setUrl(editing.url);
+    setPrice(String(editing.price));
+    setSurface(editing.surface != null ? String(editing.surface) : "");
+    setRooms(editing.rooms != null ? String(editing.rooms) : "");
+    setLocation(editing.location);
+    setAddedBy(editing.addedBy ?? ROOMMATES[0]);
+    setNotes(editing.notes ?? "");
+    setError(null);
+  }, [editing]);
+
   /** Pré-remplit les champs à partir d'un copier-coller d'annonce. */
   function handlePaste(text: string) {
     const d = parsePasted(text);
@@ -58,6 +83,11 @@ export function AddOfferForm({ onAdd }: Props) {
     if (d.price) setPrice(String(d.price));
     if (d.surface) setSurface(String(d.surface));
     if (d.rooms) setRooms(String(d.rooms));
+  }
+
+  function handleCancel() {
+    resetForm();
+    onCancelEdit();
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -78,15 +108,10 @@ export function AddOfferForm({ onAdd }: Props) {
         return;
       }
 
-      // Temps de trajet réels (TCL + vélo). En l'absence de token Navitia,
-      // routeToCampus renvoie {} et l'affichage retombe sur l'estimation.
       const times = await routeToCampus(geo);
-
       const roomsNum = rooms ? parseInt(rooms, 10) : undefined;
 
-      onAdd({
-        id: crypto.randomUUID(),
-        // Titre saisi, sinon généré "Tn // adresse géocodée".
+      const base = {
         title: title.trim() || buildTitle(roomsNum, geo.label),
         url: url.trim(),
         price: priceNum,
@@ -99,19 +124,16 @@ export function AddOfferForm({ onAdd }: Props) {
         bikeMin: times.bikeMin,
         addedBy,
         notes: notes.trim() || undefined,
-        createdAt: Date.now(),
-      });
+      };
 
-      // Reset
-      setTitle("");
-      setUrl("");
-      setPrice("");
-      setSurface("");
-      setRooms("");
-      setLocation("");
-      setNotes("");
+      if (editing) {
+        onUpdate({ ...editing, ...base });
+      } else {
+        onAdd({ id: crypto.randomUUID(), ...base, createdAt: Date.now() });
+      }
+      resetForm();
     } catch {
-      setError("Erreur réseau pendant le géocodage. Réessaie.");
+      setError("Erreur réseau pendant le calcul. Réessaie.");
     } finally {
       setBusy(false);
     }
@@ -119,16 +141,18 @@ export function AddOfferForm({ onAdd }: Props) {
 
   return (
     <form className="form" onSubmit={handleSubmit}>
-      <h2>Ajouter une offre</h2>
+      <h2>{editing ? "Modifier l'offre" : "Ajouter une offre"}</h2>
 
-      <label>
-        Coller l'annonce (pré-remplit prix/surface/lien)
-        <textarea
-          rows={2}
-          placeholder="Colle ici le texte ou le lien SeLoger…"
-          onChange={(e) => handlePaste(e.target.value)}
-        />
-      </label>
+      {!editing && (
+        <label>
+          Coller l'annonce (pré-remplit prix/surface/lien)
+          <textarea
+            rows={2}
+            placeholder="Colle ici le texte ou le lien SeLoger…"
+            onChange={(e) => handlePaste(e.target.value)}
+          />
+        </label>
+      )}
 
       <label>
         Titre <small>(optionnel, généré sinon)</small>
@@ -177,9 +201,16 @@ export function AddOfferForm({ onAdd }: Props) {
 
       {error && <p className="error">{error}</p>}
 
-      <button type="submit" disabled={busy}>
-        {busy ? "Calcul en cours…" : "Ajouter à la carte"}
-      </button>
+      <div className="form-actions">
+        <button type="submit" disabled={busy}>
+          {busy ? "Calcul en cours…" : editing ? "Enregistrer" : "Ajouter à la carte"}
+        </button>
+        {editing && (
+          <button type="button" className="btn-ghost" onClick={handleCancel} disabled={busy}>
+            Annuler
+          </button>
+        )}
+      </div>
     </form>
   );
 }

@@ -11,10 +11,11 @@ interface Props {
   offers: Offer[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  onEdit: (offer: Offer) => void;
   onRemove: (id: string) => void;
 }
 
-export function OfferList({ offers, selectedId, onSelect, onRemove }: Props) {
+export function OfferList({ offers, selectedId, onSelect, onEdit, onRemove }: Props) {
   if (offers.length === 0) {
     return <p className="empty">Aucune offre pour l'instant. Ajoute-en une ! 👆</p>;
   }
@@ -61,6 +62,15 @@ export function OfferList({ offers, selectedId, onSelect, onRemove }: Props) {
                     Annonce ↗
                   </a>
                 )}
+                <button
+                  className="link-action"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(o);
+                  }}
+                >
+                  Modifier
+                </button>
                 <button
                   className="link-danger"
                   onClick={(e) => {

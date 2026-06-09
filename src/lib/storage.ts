@@ -13,6 +13,7 @@ import { supabase, hasSupabaseConfig } from "./supabase";
 export interface OfferStore {
   getAll(): Promise<Offer[]>;
   add(offer: Offer): Promise<void>;
+  update(offer: Offer): Promise<void>;
   remove(id: string): Promise<void>;
   /** S'abonne aux changements externes. Retourne une fonction de désinscription. */
   subscribe?(onChange: () => void): () => void;
@@ -43,6 +44,9 @@ export const localStore: OfferStore = {
     const offers = read();
     offers.push(offer);
     write(offers);
+  },
+  async update(offer) {
+    write(read().map((o) => (o.id === offer.id ? offer : o)));
   },
   async remove(id) {
     write(read().filter((o) => o.id !== id));
@@ -118,6 +122,13 @@ export const supabaseStore: OfferStore = {
   },
   async add(offer) {
     const { error } = await supabase!.from("offers").insert(toRow(offer));
+    if (error) throw error;
+  },
+  async update(offer) {
+    const { error } = await supabase!
+      .from("offers")
+      .update(toRow(offer))
+      .eq("id", offer.id);
     if (error) throw error;
   },
   async remove(id) {

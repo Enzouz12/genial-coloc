@@ -3,26 +3,24 @@ import type { MapMode } from "./MapView";
 
 /** Légende dynamique selon le mode de carte actif. */
 export function Legend({ mode }: { mode: MapMode }) {
-  const lo = COMMUTE.thresholds[0];
-  const hi = COMMUTE.thresholds[COMMUTE.thresholds.length - 1];
+  const tcl = COMMUTE.thresholds;
+  const bike = COMMUTE.bikeThresholds;
   const priceLeft = `≤ ${BUDGET.green} €`;
   const priceRight = `${BUDGET.red} €`;
-  const timeLeft = `${lo} min`;
-  const timeRight = `${hi}+ min`;
 
   if (mode === "price") {
     return <Bar title="Loyer" left={priceLeft} right={priceRight} />;
   }
   if (mode === "transit") {
-    return <Bar title="Trajet TCL" left={timeLeft} right={timeRight} />;
+    return <Bar title="Trajet TCL" left={`${tcl[0]} min`} right={`${tcl[tcl.length - 1]}+ min`} />;
   }
   if (mode === "bike") {
-    return <Bar title="Trajet vélo" left={timeLeft} right={timeRight} />;
+    return <Bar title="Trajet vélo" left={`${bike[0]} min`} right={`${bike[bike.length - 1]}+ min`} />;
   }
   return (
     <div className="legend-mixed">
       <Bar title="Intérieur · loyer" left={priceLeft} right={priceRight} />
-      <Bar title="Contour · TCL" left={timeLeft} right={timeRight} />
+      <Bar title="Contour · TCL" left={`${tcl[0]} min`} right={`${tcl[tcl.length - 1]}+ min`} />
     </div>
   );
 }

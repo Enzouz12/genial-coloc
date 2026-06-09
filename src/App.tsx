@@ -18,6 +18,7 @@ export default function App() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mode, setMode] = useState<MapMode>("price");
+  const [editing, setEditing] = useState<Offer | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -37,10 +38,23 @@ export default function App() {
     setSelectedId(offer.id);
   }
 
+  async function handleUpdate(offer: Offer) {
+    await store.update(offer);
+    setOffers(await store.getAll());
+    setSelectedId(offer.id);
+    setEditing(null);
+  }
+
   async function handleRemove(id: string) {
     await store.remove(id);
     setOffers(await store.getAll());
     if (selectedId === id) setSelectedId(null);
+    if (editing?.id === id) setEditing(null);
+  }
+
+  function handleEdit(offer: Offer) {
+    setEditing(offer);
+    setSelectedId(offer.id);
   }
 
   return (
@@ -51,14 +65,18 @@ export default function App() {
           <p>Comparateur d'offres · Lyon</p>
         </header>
 
-        <AddOfferForm onAdd={handleAdd} />
-
-        <Legend mode={mode} />
+        <AddOfferForm
+          onAdd={handleAdd}
+          onUpdate={handleUpdate}
+          onCancelEdit={() => setEditing(null)}
+          editing={editing}
+        />
 
         <OfferList
           offers={offers}
           selectedId={selectedId}
           onSelect={setSelectedId}
+          onEdit={handleEdit}
           onRemove={handleRemove}
         />
       </aside>
@@ -74,6 +92,9 @@ export default function App() {
               {m.label}
             </button>
           ))}
+        </div>
+        <div className="map-legend">
+          <Legend mode={mode} />
         </div>
         <MapView
           offers={offers}
