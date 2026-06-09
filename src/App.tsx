@@ -1,15 +1,23 @@
 import { useEffect, useState } from "react";
 import type { Offer } from "./types";
 import { store } from "./lib/storage";
-import { BUDGET } from "./config";
-import { MapView } from "./components/MapView";
+import { MapView, type MapMode } from "./components/MapView";
 import { AddOfferForm } from "./components/AddOfferForm";
 import { OfferList } from "./components/OfferList";
+import { Legend } from "./components/Legend";
 import "./App.css";
+
+const MODES: { id: MapMode; label: string }[] = [
+  { id: "price", label: "Prix" },
+  { id: "transit", label: "Trajet TCL" },
+  { id: "mixed", label: "Mixte" },
+  { id: "bike", label: "Vélo" },
+];
 
 export default function App() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [mode, setMode] = useState<MapMode>("price");
 
   useEffect(() => {
     let active = true;
@@ -45,12 +53,7 @@ export default function App() {
 
         <AddOfferForm onAdd={handleAdd} />
 
-        <div className="legend">
-          <span>Budget&nbsp;:</span>
-          <span className="g-green">≤ {BUDGET.green} €</span>
-          <span className="g-bar" />
-          <span className="g-red">{BUDGET.red} €</span>
-        </div>
+        <Legend mode={mode} />
 
         <OfferList
           offers={offers}
@@ -61,7 +64,23 @@ export default function App() {
       </aside>
 
       <main className="map-wrap">
-        <MapView offers={offers} selectedId={selectedId} onSelect={setSelectedId} />
+        <div className="map-modes">
+          {MODES.map((m) => (
+            <button
+              key={m.id}
+              className={mode === m.id ? "active" : ""}
+              onClick={() => setMode(m.id)}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+        <MapView
+          offers={offers}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+          mode={mode}
+        />
       </main>
     </div>
   );

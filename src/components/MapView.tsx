@@ -2,24 +2,35 @@ import { MapContainer, TileLayer, CircleMarker, Marker, Popup, Tooltip } from "r
 import L from "leaflet";
 import type { Offer } from "../types";
 import { CAMPUS, LYON_CENTER } from "../config";
-import { priceColor } from "../lib/color";
-import { distanceToCampusKm, commuteBucket } from "../lib/geo";
+import { priceColor, timeColor } from "../lib/color";
+import { distanceToCampusKm, estimatedCommuteMinutes } from "../lib/geo";
 
-// Icône dédiée pour le campus (sinon Leaflet cherche des assets cassés par Vite).
+export type MapMode = "price" | "transit" | "mixed" | "bike";
+
+// Marqueur du campus : badge circulaire stylé.
 const campusIcon = L.divIcon({
   className: "campus-marker",
-  html: "🎓",
-  iconSize: [28, 28],
-  iconAnchor: [14, 14],
+  html: '<div class="campus-pin">🎓</div>',
+  iconSize: [34, 34],
+  iconAnchor: [17, 17],
 });
 
 interface Props {
   offers: Offer[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  mode: MapMode;
 }
 
-export function MapView({ offers, selectedId, onSelect }: Props) {
+function transitMinutesOf(o: Offer): number {
+  return o.transitMin ?? estimatedCommuteMinutes(o);
+}
+
+function bikeMinutesOf(o: Offer): number {
+  return o.bikeMin ?? estimatedCommuteMinutes(o);
+}
+
+export function MapView({ offers, selectedId, onSelect, mode }: Props) {
   return (
     <MapContainer
       center={[LYON_CENTER.lat, LYON_CENTER.lng]}
@@ -27,8 +38,8 @@ export function MapView({ offers, selectedId, onSelect }: Props) {
       className="map"
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
       />
 
       <Marker position={[CAMPUS.lat, CAMPUS.lng]} icon={campusIcon}>
@@ -40,24 +51,45 @@ export function MapView({ offers, selectedId, onSelect }: Props) {
       </Marker>
 
       {offers.map((o) => {
+        const transitM = transitMinutesOf(o);
+        const bikeM = bikeMinutesOf(o);
         const dist = distanceToCampusKm(o);
-        const commute = commuteBucket(o);
-        const isSelected = o.id === selectedId;
+        const isSel = o.id === selectedId;
+
+        // Remplissage selon le mode ; le mixte garde le loyer à l'intérieur.
+        const fill =
+          mode === "transit"
+            ? timeColor(transitM)
+            : mode === "bike"
+              ? timeColor(bikeM)
+              : priceColor(o.price);
+
+        // Contour : trajet en mode mixte, sinon liseré neutre.
+        const stroke =
+          mode === "mixed"
+            ? timeColor(transitM)
+            : isSel
+              ? "#ffffff"
+              : "rgba(255,255,255,0.75)";
+
+        const weight = mode === "mixed" ? (isSel ? 5 : 3.5) : isSel ? 3 : 1.5;
+
         return (
           <CircleMarker
             key={o.id}
             center={[o.lat, o.lng]}
-            radius={isSelected ? 14 : 10}
+            radius={isSel ? 13 : 9}
             pathOptions={{
-              color: isSelected ? "#111" : "#fff",
-              weight: isSelected ? 3 : 1.5,
-              fillColor: priceColor(o.price),
+              color: stroke,
+              weight,
+              fillColor: fill,
               fillOpacity: 0.9,
+              className: isSel ? "gc-marker selected" : "gc-marker",
             }}
             eventHandlers={{ click: () => onSelect(o.id) }}
           >
-            <Tooltip direction="top">
-              {o.price} € · {commute.label}
+            <Tooltip direction="top" className="gc-tip">
+              {o.price} € · TCL {Math.round(transitM)} min
             </Tooltip>
             <Popup>
               <strong>{o.title}</strong>
@@ -66,10 +98,20 @@ export function MapView({ offers, selectedId, onSelect }: Props) {
               {o.surface ? ` · ${o.surface} m²` : ""}
               {o.rooms ? ` · T${o.rooms}` : ""}
               <br />
-              {dist.toFixed(1)} km · {commute.label} du campus
+              {dist.toFixed(1)} km du campus
               <br />
-              {o.transitMin != null && <>TCL {o.transitMin} min<br /></>}
-              {o.bikeMin != null && <>Vélo {o.bikeMin} min<br /></>}
+              {o.transitMin != null && (
+                <>
+                  TCL {o.transitMin} min
+                  <br />
+                </>
+              )}
+              {o.bikeMin != null && (
+                <>
+                  Vélo {o.bikeMin} min
+                  <br />
+                </>
+              )}
               <a href={o.url} target="_blank" rel="noreferrer">
                 Voir l'annonce
               </a>

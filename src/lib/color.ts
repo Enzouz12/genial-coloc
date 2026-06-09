@@ -1,15 +1,28 @@
-import { BUDGET } from "../config";
+import { BUDGET, COMMUTE } from "../config";
 
 /**
  * Couleur d'un marqueur selon le prix.
  * Vert vif (avantageux) → rouge (au plafond budget).
- * Interpolation de teinte HSL de 120° (vert) à 0° (rouge).
  */
 export function priceColor(price: number): string {
   const { green, red } = BUDGET;
-  const t = clamp((price - green) / (red - green), 0, 1);
-  const hue = 120 * (1 - t); // 120 → 0
-  return `hsl(${hue}, 75%, 45%)`;
+  return gradient(clamp((price - green) / (red - green), 0, 1));
+}
+
+/**
+ * Couleur selon un temps de trajet en minutes.
+ * Vert (proche du premier palier) → rouge (au-delà du dernier).
+ */
+export function timeColor(minutes: number): string {
+  const lo = COMMUTE.thresholds[0];
+  const hi = COMMUTE.thresholds[COMMUTE.thresholds.length - 1];
+  return gradient(clamp((minutes - lo) / (hi - lo), 0, 1));
+}
+
+/** Interpolation de teinte vert (120°) → rouge (0°). */
+function gradient(t: number): string {
+  const hue = 120 * (1 - t);
+  return `hsl(${hue}, 70%, 48%)`;
 }
 
 function clamp(v: number, min: number, max: number): number {
