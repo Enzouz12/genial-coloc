@@ -58,6 +58,11 @@ body {
   font-family: inherit;
 }
 .form textarea { resize: vertical; }
+.form input:focus, .form textarea:focus, .form select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
 .form .row { display: flex; gap: 8px; }
 .form .row > label { flex: 1; }
 .form .row > label.grow { flex: 2; }
@@ -72,6 +77,7 @@ body {
   font-weight: 600;
   cursor: pointer;
 }
+.form button[type="submit"]:hover:not(:disabled) { background: #2f6fe0; }
 .form button[type="submit"]:disabled { opacity: 0.6; cursor: wait; }
 .error { color: var(--danger); font-size: 13px; margin: 0; }
 
@@ -92,6 +98,9 @@ body {
 }
 .g-green { color: hsl(120,75%,55%); }
 .g-red { color: hsl(0,75%,60%); }
+.legend-title { font-weight: 600; color: var(--text); margin-right: 2px; }
+.legend-mixed { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; }
+.legend-mixed .legend { margin: 0; }
 
 /* ---- Offer list ---- */
 .offer-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
@@ -104,8 +113,10 @@ body {
   border: 1px solid var(--border);
   border-radius: 10px;
   cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
 }
-.offer.selected { border-color: var(--accent); }
+.offer:hover { border-color: #3a4250; background: #252a34; }
+.offer.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 .offer .dot { width: 12px; height: 12px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
 .offer-body { flex: 1; min-width: 0; }
 .offer-head { display: flex; justify-content: space-between; gap: 8px; }
@@ -134,7 +145,86 @@ body {
 .map-wrap { position: relative; }
 .map { height: 100%; width: 100%; }
 .leaflet-container { background: #0b0d11; }
-.campus-marker { font-size: 22px; text-align: center; line-height: 28px; }
+
+/* Sélecteur de vue flottant */
+.map-modes {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  background: rgba(24, 27, 34, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+}
+.map-modes button {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font: 600 12px system-ui, sans-serif;
+  padding: 6px 13px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.map-modes button:hover { color: var(--text); }
+.map-modes button.active { background: var(--accent); color: #fff; }
+
+/* Marqueurs */
+.gc-marker { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6)); transition: filter 0.15s; }
+.gc-marker.selected { filter: drop-shadow(0 0 7px rgba(255, 255, 255, 0.55)); }
+
+/* Badge campus */
+.campus-marker { background: none; border: none; }
+.campus-pin {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  background: rgba(24, 27, 34, 0.92);
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  font-size: 17px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+}
+
+/* Popups et tooltips thémés sombre */
+.leaflet-popup-content-wrapper,
+.leaflet-tooltip {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+}
+.leaflet-popup-content-wrapper { border-radius: 10px; }
+.leaflet-popup-content { margin: 10px 13px; font-size: 13px; line-height: 1.45; }
+.leaflet-popup-content a, .leaflet-tooltip a { color: var(--accent); }
+.leaflet-popup-tip { background: var(--panel); border: 1px solid var(--border); }
+.leaflet-container a.leaflet-popup-close-button { color: var(--muted); }
+.leaflet-tooltip {
+  border-radius: 7px;
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.leaflet-tooltip-top::before { border-top-color: var(--border); }
+.leaflet-bar a {
+  background: var(--panel);
+  color: var(--text);
+  border-bottom-color: var(--border);
+}
+.leaflet-bar a:hover { background: var(--panel-2); }
+
+/* ---- Scrollbar ---- */
+.sidebar::-webkit-scrollbar { width: 10px; }
+.sidebar::-webkit-scrollbar-thumb { background: #2a2f3a; border-radius: 8px; }
+.sidebar::-webkit-scrollbar-thumb:hover { background: #353b47; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
 
 /* ---- Responsive ---- */
 @media (max-width: 800px) {
