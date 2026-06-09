@@ -4,13 +4,39 @@ Content script qui ajoute un bouton sur les pages d'annonces SeLoger. Au clic, i
 
 Compatible Firefox et Chrome : WebExtensions Manifest V3, sans service worker ni permissions.
 
-## Charger dans Firefox
+## Charger dans Firefox (temporaire, pour le développement)
 
 1. Ouvrir `about:debugging#/runtime/this-firefox`
 2. Cliquer sur **Charger un module complémentaire temporaire**
 3. Sélectionner `extension/manifest.json`
 
-Le chargement temporaire est retiré au redémarrage de Firefox. Pour une installation permanente, signer l'extension via addons.mozilla.org ou utiliser `web-ext`.
+Ce chargement disparaît au redémarrage de Firefox.
+
+## Installation permanente dans Firefox (signature)
+
+Firefox n'installe durablement que les extensions signées. La signature passe
+par addons.mozilla.org en mode auto-distribution (unlisted), gratuit, sans
+publication publique.
+
+1. Créer un compte sur https://addons.mozilla.org
+2. Générer des identifiants API : https://addons.mozilla.org/developers/addon/api/key/
+   On obtient un `JWT issuer` et un `JWT secret`.
+3. Signer depuis la racine du projet :
+
+   ```
+   npm run ext:sign -- --api-key=VOTRE_ISSUER --api-secret=VOTRE_SECRET
+   ```
+
+   Mozilla renvoie un `.xpi` signé dans `web-ext-artifacts/`.
+4. L'installer : Firefox > `about:addons` > engrenage > **Installer un module depuis un fichier** > choisir le `.xpi`.
+
+À chaque modification, incrémenter `version` dans `manifest.json`, resigner, réinstaller.
+
+Scripts disponibles :
+
+- `npm run ext:lint` valide le manifeste
+- `npm run ext:build` produit un zip non signé dans `web-ext-artifacts/`
+- `npm run ext:sign` signe via AMO
 
 ## Charger dans Chrome
 
