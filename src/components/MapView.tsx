@@ -1,7 +1,7 @@
 import { MapContainer, TileLayer, CircleMarker, Marker, Popup, Tooltip } from "react-leaflet";
 import L from "leaflet";
 import type { Offer } from "../types";
-import { CAMPUS, LYON_CENTER } from "../config";
+import { CAMPUS, LYON_CENTER, COMMUTE } from "../config";
 import { priceColor, timeColor } from "../lib/color";
 import { distanceToCampusKm, estimatedCommuteMinutes } from "../lib/geo";
 
@@ -39,7 +39,7 @@ export function MapView({ offers, selectedId, onSelect, mode }: Props) {
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
       />
 
       <Marker position={[CAMPUS.lat, CAMPUS.lng]} icon={campusIcon}>
@@ -61,16 +61,16 @@ export function MapView({ offers, selectedId, onSelect, mode }: Props) {
           mode === "transit"
             ? timeColor(transitM)
             : mode === "bike"
-              ? timeColor(bikeM)
+              ? timeColor(bikeM, COMMUTE.bikeThresholds)
               : priceColor(o.price);
 
-        // Contour : trajet en mode mixte, sinon liseré neutre.
+        // Contour : trajet en mode mixte, sinon liseré sombre discret.
         const stroke =
           mode === "mixed"
             ? timeColor(transitM)
             : isSel
-              ? "#ffffff"
-              : "rgba(255,255,255,0.75)";
+              ? "#1f2937"
+              : "rgba(0,0,0,0.35)";
 
         const weight = mode === "mixed" ? (isSel ? 5 : 3.5) : isSel ? 3 : 1.5;
 

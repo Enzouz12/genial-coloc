@@ -29,8 +29,10 @@ export const COMMUTE = {
   averageSpeedKmh: 14,
   /** Facteur de détour : le trajet réel est plus long que la ligne droite. */
   detourFactor: 1.35,
-  /** Paliers de temps de trajet, en minutes. */
+  /** Paliers de temps de trajet TCL, en minutes. */
   thresholds: [15, 30, 45, 60],
+  /** Paliers de temps de trajet à vélo, en minutes (trajets plus courts). */
+  bikeThresholds: [10, 20, 30, 40],
 } as const;
 
 /** Noms des colocataires (pour le champ "ajouté par"). */

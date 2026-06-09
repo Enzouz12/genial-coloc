@@ -10,12 +10,16 @@ export function priceColor(price: number): string {
 }
 
 /**
- * Couleur selon un temps de trajet en minutes.
- * Vert (proche du premier palier) → rouge (au-delà du dernier).
+ * Couleur selon un temps de trajet en minutes, sur une échelle de paliers.
+ * Vert (premier palier) → rouge (au-delà du dernier). Les paliers diffèrent
+ * entre TCL et vélo, d'où le paramètre.
  */
-export function timeColor(minutes: number): string {
-  const lo = COMMUTE.thresholds[0];
-  const hi = COMMUTE.thresholds[COMMUTE.thresholds.length - 1];
+export function timeColor(
+  minutes: number,
+  thresholds: readonly number[] = COMMUTE.thresholds
+): string {
+  const lo = thresholds[0];
+  const hi = thresholds[thresholds.length - 1];
   return gradient(clamp((minutes - lo) / (hi - lo), 0, 1));
 }
 
