@@ -12,6 +12,7 @@ Application web de comparaison d'annonces de location pour une recherche de colo
 - Classement du temps de trajet par paliers de 15, 30, 45 et 60 minutes
 - Géocodage des adresses via la Base Adresse Nationale, restreint à l'agglomération lyonnaise
 - Saisie assistée : coller un lien SeLoger pré-remplit la zone, le type et le titre ; coller le texte de l'annonce ajoute le loyer et la surface
+- Extension navigateur Firefox et Chrome pour importer une annonce SeLoger en un clic
 - Stockage partagé en temps réel via Supabase, ou stockage local du navigateur sans configuration
 - Attribution de chaque annonce à un colocataire
 
@@ -63,6 +64,9 @@ src/
     OfferList.tsx
 supabase/
   schema.sql           table offers, RLS, temps réel
+extension/
+  manifest.json        WebExtension Manifest V3
+  content.js           extraction SeLoger et ouverture de l'app
 ```
 
 ## Démarrage
@@ -74,8 +78,8 @@ npm run dev
 
 ## Feuille de route
 
-- Extension navigateur pour ajouter une annonce depuis SeLoger
 - Filtres par loyer, surface et temps de trajet
+- Signature de l'extension pour une installation permanente
 
 ## SeLoger
 
