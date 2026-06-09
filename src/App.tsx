@@ -12,7 +12,15 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
-    store.getAll().then(setOffers);
+    let active = true;
+    const load = () => store.getAll().then((o) => active && setOffers(o));
+    load();
+    // Rafraîchit en temps réel quand l'autre colocataire ajoute/supprime.
+    const unsubscribe = store.subscribe?.(load);
+    return () => {
+      active = false;
+      unsubscribe?.();
+    };
   }, []);
 
   async function handleAdd(offer: Offer) {
