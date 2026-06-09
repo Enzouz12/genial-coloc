@@ -4,8 +4,8 @@ Application web de comparaison d'annonces de location pour une recherche de colo
 
 ## Fonctionnalités
 
-- Carte interactive Leaflet avec tuiles OpenStreetMap
-- Marqueurs colorés du vert au rouge selon le loyer, de 700 à 1100 euros
+- Carte interactive Leaflet sur fond sombre, marqueurs colorés du vert au rouge
+- Quatre vues : loyer, trajet TCL, vélo, et une vue mixte loyer à l'intérieur et trajet en contour
 - Temps de trajet jusqu'au campus en transport en commun TCL et à vélo, via Transitous
 - Heure de référence fixée à un matin de semaine pour comparer les offres
 - Repli sur une estimation par distance si le service de routage est indisponible
