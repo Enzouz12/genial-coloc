@@ -17,6 +17,8 @@ Application web de comparaison d'annonces de location pour une recherche de colo
 - Édition d'une offre enregistrée : sélectionner un marqueur ou une offre la charge dans le formulaire, un clic sur le fond de carte revient en mode ajout
 - Saisie assistée : coller un lien SeLoger pré-remplit la zone et le type, coller le texte de l'annonce ajoute le loyer et la surface
 - Extension navigateur Firefox et Chrome pour importer une annonce SeLoger en un clic
+- Statut de suivi par offre (à visiter, visitée, favori, écartée) avec liseré coloré
+- Filtres carte et liste par statut, loyer maximum et temps de trajet maximum
 - Stockage partagé en temps réel via Supabase, ou stockage local du navigateur sans configuration
 - Attribution de chaque annonce à un colocataire
 
@@ -93,7 +95,7 @@ npm run ext:sign     # signe via AMO pour une installation permanente
 
 ## Feuille de route
 
-- Filtres par loyer, surface et temps de trajet
+- Score pondéré classant les offres selon des critères ajustables
 - Mises à jour automatiques de l'extension via un update_url
 
 ## SeLoger

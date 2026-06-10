@@ -1,4 +1,5 @@
-import type { Offer } from "../types";
+import type { Offer, OfferStatus } from "../types";
+import { STATUSES, statusColor } from "../config";
 import { priceColor } from "../lib/color";
 import { distanceToCampusKm, commuteBucket } from "../lib/geo";
 
@@ -11,10 +12,11 @@ interface Props {
   offers: Offer[];
   selectedId: string | null;
   onSelect: (offer: Offer) => void;
+  onSetStatus: (offer: Offer, status: OfferStatus) => void;
   onRemove: (id: string) => void;
 }
 
-export function OfferList({ offers, selectedId, onSelect, onRemove }: Props) {
+export function OfferList({ offers, selectedId, onSelect, onSetStatus, onRemove }: Props) {
   if (offers.length === 0) {
     return <p className="empty">Aucune offre pour l'instant. Ajoute-en une ! 👆</p>;
   }
@@ -28,6 +30,7 @@ export function OfferList({ offers, selectedId, onSelect, onRemove }: Props) {
           <li
             key={o.id}
             className={o.id === selectedId ? "offer selected" : "offer"}
+            style={{ borderLeftWidth: 4, borderLeftColor: statusColor(o.status) }}
             onClick={() => onSelect(o)}
           >
             <span className="dot" style={{ background: priceColor(o.price) }} />
@@ -56,6 +59,20 @@ export function OfferList({ offers, selectedId, onSelect, onRemove }: Props) {
               </div>
               {o.notes && <div className="offer-notes">{o.notes}</div>}
               <div className="offer-actions">
+                <select
+                  className="status-select"
+                  value={o.status ?? "new"}
+                  style={{ color: statusColor(o.status) }}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    onSetStatus(o, e.target.value as OfferStatus);
+                  }}
+                >
+                  {STATUSES.map((s) => (
+                    <option key={s.id} value={s.id}>{s.label}</option>
+                  ))}
+                </select>
                 {o.url && (
                   <a href={o.url} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
                     Annonce ↗

@@ -1,4 +1,4 @@
-import type { Offer } from "../types";
+import type { Offer, OfferStatus } from "../types";
 import { supabase, hasSupabaseConfig } from "./supabase";
 
 /**
@@ -71,10 +71,11 @@ interface OfferRow {
   added_by: string | null;
   notes: string | null;
   created_at: number;
+  status?: string | null;
 }
 
 function toRow(o: Offer): OfferRow {
-  return {
+  const row: OfferRow = {
     id: o.id,
     url: o.url || null,
     title: o.title,
@@ -90,6 +91,10 @@ function toRow(o: Offer): OfferRow {
     notes: o.notes ?? null,
     created_at: o.createdAt,
   };
+  // N'inclut le statut que s'il est défini : compatible avec une base
+  // sans la colonne `status` tant que la migration n'a pas été appliquée.
+  if (o.status) row.status = o.status;
+  return row;
 }
 
 function fromRow(r: OfferRow): Offer {
@@ -108,6 +113,7 @@ function fromRow(r: OfferRow): Offer {
     addedBy: r.added_by ?? undefined,
     notes: r.notes ?? undefined,
     createdAt: r.created_at,
+    status: (r.status as OfferStatus) ?? undefined,
   };
 }
 

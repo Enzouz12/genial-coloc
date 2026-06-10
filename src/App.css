@@ -135,6 +135,55 @@ body {
 .legend-mixed { display: flex; flex-direction: column; gap: 12px; margin: 10px 0; }
 .legend-mixed .legend { margin: 0; }
 
+/* ---- Filtres ---- */
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 14px 0 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.filters-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.filters-count { color: var(--accent); font-size: 12px; }
+.filters label { display: flex; flex-direction: column; gap: 2px; font-size: 11px; color: var(--muted); }
+.filters input, .filters select {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 6px 9px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+}
+.filters .row { display: flex; gap: 8px; }
+.filters .row > label { flex: 1; }
+.filters input:focus, .filters select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
+.filters .btn-ghost { align-self: flex-start; }
+
+/* Sélecteur de statut dans une offre */
+.status-select {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+
 /* ---- Offer list ---- */
 .offer-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .empty { color: var(--muted); font-size: 14px; }

@@ -1,5 +1,13 @@
 // Modèle de données central de Génial Colloc.
 
+/** Statut de suivi d'une offre pendant la recherche. */
+export type OfferStatus =
+  | "new"
+  | "to_visit"
+  | "visited"
+  | "favorite"
+  | "rejected";
+
 export interface Offer {
   id: string;
   /** Lien vers l'annonce d'origine (SeLoger pour l'instant). */
@@ -21,6 +29,8 @@ export interface Offer {
   transitMin?: number;
   /** Temps de trajet à vélo jusqu'au campus, en minutes. */
   bikeMin?: number;
+  /** Statut de suivi (à visiter, favori, écartée…). */
+  status?: OfferStatus;
   /** Qui a ajouté l'offre (toi / ton·ta coloc). */
   addedBy?: string;
   /** Notes libres (étage, meublé, dispo...). */

@@ -1,4 +1,5 @@
 // Constantes métier de Génial Colloc.
+import type { OfferStatus } from "./types";
 
 /** Point de référence : Université Lyon 2 — Campus Porte des Alpes (Bron). */
 export const CAMPUS = {
@@ -46,3 +47,17 @@ export const COMMUTE = {
 
 /** Noms des colocataires (pour le champ "ajouté par"). */
 export const ROOMMATES = ["Enzo", "Esteban"] as const;
+
+/** Statuts de suivi d'une offre, avec libellé et couleur. */
+export const STATUSES: { id: OfferStatus; label: string; color: string }[] = [
+  { id: "new", label: "Nouvelle", color: "#9aa0aa" },
+  { id: "to_visit", label: "À visiter", color: "#3b82f6" },
+  { id: "visited", label: "Visitée", color: "#a855f7" },
+  { id: "favorite", label: "Favori", color: "#22c55e" },
+  { id: "rejected", label: "Écartée", color: "#ef4444" },
+];
+
+/** Couleur d'un statut (gris par défaut). */
+export function statusColor(status: OfferStatus | undefined): string {
+  return STATUSES.find((s) => s.id === (status ?? "new"))?.color ?? "#9aa0aa";
+}

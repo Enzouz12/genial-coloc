@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
-import type { Offer } from "./types";
+import { useEffect, useMemo, useState } from "react";
+import type { Offer, OfferStatus } from "./types";
 import { store } from "./lib/storage";
-import { reverseGeocode } from "./lib/geo";
+import { reverseGeocode, estimatedCommuteMinutes } from "./lib/geo";
 import { MapView, type MapMode } from "./components/MapView";
 import { AddOfferForm } from "./components/AddOfferForm";
 import { OfferList } from "./components/OfferList";
 import { Legend } from "./components/Legend";
+import { Filters, EMPTY_FILTERS, type FilterState } from "./components/Filters";
 import "./App.css";
 
 const MODES: { id: MapMode; label: string }[] = [
@@ -23,6 +24,22 @@ export default function App() {
   const [editing, setEditing] = useState<Offer | null>(null);
   const [pinpointMode, setPinpointMode] = useState(false);
   const [pinned, setPinned] = useState<{ label: string; key: number } | null>(null);
+  const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
+
+  // Offres après application des filtres (statut, loyer max, temps TCL max).
+  const visibleOffers = useMemo(() => {
+    const maxPrice = filters.maxPrice ? parseInt(filters.maxPrice, 10) : null;
+    const maxTransit = filters.maxTransit ? parseInt(filters.maxTransit, 10) : null;
+    return offers.filter((o) => {
+      if (filters.status !== "all" && (o.status ?? "new") !== filters.status) return false;
+      if (maxPrice && o.price > maxPrice) return false;
+      if (maxTransit) {
+        const t = o.transitMin ?? estimatedCommuteMinutes(o);
+        if (t > maxTransit) return false;
+      }
+      return true;
+    });
+  }, [offers, filters]);
 
   useEffect(() => {
     let active = true;
@@ -69,6 +86,17 @@ export default function App() {
     if (r) setPinned({ label: r.label, key: Date.now() });
   }
 
+  // Change le statut d'une offre, sans re-géocoder (mise à jour optimiste).
+  async function handleSetStatus(offer: Offer, status: OfferStatus) {
+    const updated = { ...offer, status };
+    setOffers((prev) => prev.map((o) => (o.id === offer.id ? updated : o)));
+    try {
+      await store.update(updated);
+    } catch {
+      setOffers(await store.getAll());
+    }
+  }
+
   return (
     <div className="app">
       <aside className="sidebar">
@@ -87,10 +115,18 @@ export default function App() {
           pinnedLocation={pinned}
         />
 
+        <Filters
+          filters={filters}
+          onChange={setFilters}
+          shown={visibleOffers.length}
+          total={offers.length}
+        />
+
         <OfferList
-          offers={offers}
+          offers={visibleOffers}
           selectedId={selectedId}
           onSelect={selectOffer}
+          onSetStatus={handleSetStatus}
           onRemove={handleRemove}
         />
       </aside>
@@ -111,7 +147,7 @@ export default function App() {
           <Legend mode={mode} />
         </div>
         <MapView
-          offers={offers}
+          offers={visibleOffers}
           selectedId={selectedId}
           onSelect={selectOffer}
           onBackgroundClick={() => selectOffer(null)}
