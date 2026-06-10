@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import type { Offer } from "../types";
-import { ROOMMATES } from "../config";
+import type { Offer, OfferStatus } from "../types";
+import { ROOMMATES, STATUSES } from "../config";
 import { geocode } from "../lib/geo";
 import { routeToCampus } from "../lib/routing";
 import { parsePasted } from "../lib/parseSeLoger";
@@ -37,6 +37,7 @@ export function AddOfferForm({
   const [rooms, setRooms] = useState("");
   const [location, setLocation] = useState("");
   const [addedBy, setAddedBy] = useState<string>(ROOMMATES[0]);
+  const [status, setStatus] = useState<OfferStatus>("new");
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +49,7 @@ export function AddOfferForm({
     setSurface("");
     setRooms("");
     setLocation("");
+    setStatus("new");
     setNotes("");
     setError(null);
   }
@@ -84,6 +86,7 @@ export function AddOfferForm({
       setRooms(editing.rooms != null ? String(editing.rooms) : "");
       setLocation(editing.location);
       setAddedBy(editing.addedBy ?? ROOMMATES[0]);
+      setStatus(editing.status ?? "new");
       setNotes(editing.notes ?? "");
       setError(null);
     } else if (prevEditingId.current) {
@@ -147,6 +150,7 @@ export function AddOfferForm({
         transitMin: times.transitMin,
         bikeMin: times.bikeMin,
         addedBy,
+        status,
         notes: notes.trim() || undefined,
       };
 
@@ -218,6 +222,14 @@ export function AddOfferForm({
 
       <div className="row">
         <label>
+          Statut
+          <select value={status} onChange={(e) => setStatus(e.target.value as OfferStatus)}>
+            {STATUSES.map((s) => (
+              <option key={s.id} value={s.id}>{s.label}</option>
+            ))}
+          </select>
+        </label>
+        <label>
           Ajouté par
           <select value={addedBy} onChange={(e) => setAddedBy(e.target.value)}>
             {ROOMMATES.map((r) => (
@@ -225,11 +237,12 @@ export function AddOfferForm({
             ))}
           </select>
         </label>
-        <label className="grow">
-          Notes
-          <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Meublé, dispo sept., 3e étage…" />
-        </label>
       </div>
+
+      <label>
+        Notes
+        <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Meublé, dispo sept., 3e étage…" />
+      </label>
 
       {error && <p className="error">{error}</p>}
 

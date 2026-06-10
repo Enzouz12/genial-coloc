@@ -21,9 +21,14 @@ export function OfferList({ offers, selectedId, onSelect, onSetStatus, onRemove 
     return <p className="empty">Aucune offre pour l'instant. Ajoute-en une ! 👆</p>;
   }
 
+  // Les offres écartées sont reléguées en bas (tri stable).
+  const ordered = [...offers].sort(
+    (a, b) => Number(a.status === "rejected") - Number(b.status === "rejected")
+  );
+
   return (
     <ul className="offer-list">
-      {offers.map((o) => {
+      {ordered.map((o) => {
         const dist = distanceToCampusKm(o);
         const commute = commuteBucket(o);
         return (

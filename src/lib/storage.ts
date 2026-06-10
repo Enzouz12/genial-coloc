@@ -75,7 +75,7 @@ interface OfferRow {
 }
 
 function toRow(o: Offer): OfferRow {
-  const row: OfferRow = {
+  return {
     id: o.id,
     url: o.url || null,
     title: o.title,
@@ -90,11 +90,21 @@ function toRow(o: Offer): OfferRow {
     added_by: o.addedBy ?? null,
     notes: o.notes ?? null,
     created_at: o.createdAt,
+    status: o.status ?? null,
   };
-  // N'inclut le statut que s'il est défini : compatible avec une base
-  // sans la colonne `status` tant que la migration n'a pas été appliquée.
-  if (o.status) row.status = o.status;
-  return row;
+}
+
+/** Retire le statut d'une ligne (repli si la colonne n'existe pas en base). */
+function withoutStatus(row: OfferRow): OfferRow {
+  const clone = { ...row };
+  delete clone.status;
+  return clone;
+}
+
+/** Vrai si l'erreur Supabase vient d'une colonne `status` absente. */
+function missingStatusColumn(error: { code?: string; message?: string } | null): boolean {
+  if (!error) return false;
+  return error.code === "PGRST204" || /status/i.test(error.message ?? "");
 }
 
 function fromRow(r: OfferRow): Offer {
@@ -127,14 +137,22 @@ export const supabaseStore: OfferStore = {
     return (data as OfferRow[]).map(fromRow);
   },
   async add(offer) {
-    const { error } = await supabase!.from("offers").insert(toRow(offer));
+    const row = toRow(offer);
+    let { error } = await supabase!.from("offers").insert(row);
+    if (error && missingStatusColumn(error)) {
+      ({ error } = await supabase!.from("offers").insert(withoutStatus(row)));
+    }
     if (error) throw error;
   },
   async update(offer) {
-    const { error } = await supabase!
-      .from("offers")
-      .update(toRow(offer))
-      .eq("id", offer.id);
+    const row = toRow(offer);
+    let { error } = await supabase!.from("offers").update(row).eq("id", offer.id);
+    if (error && missingStatusColumn(error)) {
+      ({ error } = await supabase!
+        .from("offers")
+        .update(withoutStatus(row))
+        .eq("id", offer.id));
+    }
     if (error) throw error;
   },
   async remove(id) {
