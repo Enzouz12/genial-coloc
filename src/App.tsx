@@ -12,6 +12,7 @@ const MODES: { id: MapMode; label: string }[] = [
   { id: "transit", label: "Trajet TCL" },
   { id: "mixed", label: "Mixte" },
   { id: "bike", label: "Vélo" },
+  { id: "value", label: "€/m²" },
 ];
 
 export default function App() {

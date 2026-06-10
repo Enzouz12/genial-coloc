@@ -21,6 +21,15 @@ export const BUDGET = {
 } as const;
 
 /**
+ * Bornes du prix au m² (loyer / surface) pour la vue qualité-prix.
+ * Vert = avantageux, rouge = cher au m². Calé sur le marché lyonnais.
+ */
+export const VALUE = {
+  green: 8,
+  red: 18,
+} as const;
+
+/**
  * Estimation du temps de trajet jusqu'au campus à partir de la distance
  * à vol d'oiseau, puis classement par paliers.
  */

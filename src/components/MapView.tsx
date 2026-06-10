@@ -2,10 +2,13 @@ import { MapContainer, TileLayer, CircleMarker, Marker, Popup, Tooltip } from "r
 import L from "leaflet";
 import type { Offer } from "../types";
 import { CAMPUS, LYON_CENTER, COMMUTE } from "../config";
-import { priceColor, timeColor } from "../lib/color";
+import { priceColor, timeColor, valueColor } from "../lib/color";
 import { distanceToCampusKm, estimatedCommuteMinutes } from "../lib/geo";
 
-export type MapMode = "price" | "transit" | "mixed" | "bike";
+export type MapMode = "price" | "transit" | "mixed" | "bike" | "value";
+
+/** Couleur neutre quand la donnée manque (ex. surface absente). */
+const NO_DATA = "#9aa0aa";
 
 // Marqueur du campus : badge circulaire stylé.
 const campusIcon = L.divIcon({
@@ -62,7 +65,11 @@ export function MapView({ offers, selectedId, onSelect, mode }: Props) {
             ? timeColor(transitM)
             : mode === "bike"
               ? timeColor(bikeM, COMMUTE.bikeThresholds)
-              : priceColor(o.price);
+              : mode === "value"
+                ? o.surface
+                  ? valueColor(o.price / o.surface)
+                  : NO_DATA
+                : priceColor(o.price);
 
         // Contour : trajet en mode mixte, sinon liseré sombre discret.
         const stroke =
@@ -97,6 +104,7 @@ export function MapView({ offers, selectedId, onSelect, mode }: Props) {
               {o.price} € CC
               {o.surface ? ` · ${o.surface} m²` : ""}
               {o.rooms ? ` · T${o.rooms}` : ""}
+              {o.surface ? ` · ${Math.round(o.price / o.surface)} €/m²` : ""}
               <br />
               {dist.toFixed(1)} km du campus
               <br />

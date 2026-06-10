@@ -1,4 +1,4 @@
-import { BUDGET, COMMUTE } from "../config";
+import { BUDGET, COMMUTE, VALUE } from "../config";
 import type { MapMode } from "./MapView";
 
 /** Légende dynamique selon le mode de carte actif. */
@@ -16,6 +16,9 @@ export function Legend({ mode }: { mode: MapMode }) {
   }
   if (mode === "bike") {
     return <Bar title="Trajet vélo" left={`${bike[0]} min`} right={`${bike[bike.length - 1]}+ min`} />;
+  }
+  if (mode === "value") {
+    return <Bar title="Prix au m²" left={`≤ ${VALUE.green} €/m²`} right={`${VALUE.red}+ €/m²`} />;
   }
   return (
     <div className="legend-mixed">

@@ -1,4 +1,4 @@
-import { BUDGET, COMMUTE } from "../config";
+import { BUDGET, COMMUTE, VALUE } from "../config";
 
 /**
  * Couleur d'un marqueur selon le prix.
@@ -7,6 +7,14 @@ import { BUDGET, COMMUTE } from "../config";
 export function priceColor(price: number): string {
   const { green, red } = BUDGET;
   return gradient(clamp((price - green) / (red - green), 0, 1));
+}
+
+/**
+ * Couleur selon le prix au m² (loyer / surface).
+ * Vert (bon rapport) → rouge (cher au m²).
+ */
+export function valueColor(pricePerM2: number): string {
+  return gradient(clamp((pricePerM2 - VALUE.green) / (VALUE.red - VALUE.green), 0, 1));
 }
 
 /**
