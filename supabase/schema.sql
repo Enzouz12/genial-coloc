@@ -1,4 +1,4 @@
--- Schéma de la table des offres pour Génial Colloc.
+-- Schéma de la table des offres pour Génial Coloc.
 -- À exécuter dans Supabase : SQL Editor > New query > Run.
 
 create table if not exists public.offers (

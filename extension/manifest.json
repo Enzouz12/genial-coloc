@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Génial Colloc",
+  "name": "Génial Coloc",
   "version": "1.0.0",
-  "description": "Ajoute une annonce SeLoger à Génial Colloc en un clic.",
+  "description": "Ajoute une annonce SeLoger à Génial Coloc en un clic.",
   "content_scripts": [
     {
       "matches": ["https://www.seloger.com/*"],

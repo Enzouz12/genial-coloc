@@ -1,4 +1,4 @@
-// Constantes métier de Génial Colloc.
+// Constantes métier de Génial Coloc.
 import type { OfferStatus } from "./types";
 
 /** Point de référence : Université Lyon 2 — Campus Porte des Alpes (Bron). */

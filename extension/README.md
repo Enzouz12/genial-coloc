@@ -1,6 +1,6 @@
-# Extension Génial Colloc
+# Extension Génial Coloc
 
-Content script qui ajoute un bouton sur les pages d'annonces SeLoger. Au clic, il extrait le titre, le loyer et la surface depuis la page, puis ouvre Génial Colloc avec le formulaire pré-rempli. L'app se charge ensuite du géocodage, des itinéraires et de l'enregistrement.
+Content script qui ajoute un bouton sur les pages d'annonces SeLoger. Au clic, il extrait le titre, le loyer et la surface depuis la page, puis ouvre Génial Coloc avec le formulaire pré-rempli. L'app se charge ensuite du géocodage, des itinéraires et de l'enregistrement.
 
 Compatible Firefox et Chrome : WebExtensions Manifest V3, sans service worker ni permissions.
 
@@ -47,8 +47,8 @@ Scripts disponibles :
 ## Utilisation
 
 1. Ouvrir une annonce sur seloger.com
-2. Cliquer sur le bouton **➕ Génial Colloc** en bas à droite
-3. Un onglet Génial Colloc s'ouvre avec les champs pré-remplis ; vérifier et ajouter
+2. Cliquer sur le bouton **➕ Génial Coloc** en bas à droite
+3. Un onglet Génial Coloc s'ouvre avec les champs pré-remplis ; vérifier et ajouter
 
 ## Configuration
 

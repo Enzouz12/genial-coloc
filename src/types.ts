@@ -1,4 +1,4 @@
-// Modèle de données central de Génial Colloc.
+// Modèle de données central de Génial Coloc.
 
 /** Statut de suivi d'une offre pendant la recherche. */
 export type OfferStatus =

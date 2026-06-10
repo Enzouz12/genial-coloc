@@ -1,4 +1,4 @@
-// Génial Colloc — content script SeLoger.
+// Génial Coloc — content script SeLoger.
 // Compatible Firefox et Chrome (WebExtensions MV3) : pas de service worker,
 // pas de permissions, aucune API spécifique à un navigateur.
 (function () {
@@ -105,7 +105,7 @@
     if (document.getElementById("gc-add-btn")) return;
     const btn = document.createElement("button");
     btn.id = "gc-add-btn";
-    btn.textContent = "➕ Génial Colloc";
+    btn.textContent = "➕ Génial Coloc";
     btn.style.cssText =
       "position:fixed;bottom:20px;right:20px;z-index:2147483647;" +
       "background:#22c55e;color:#fff;border:none;border-radius:999px;" +

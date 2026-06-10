@@ -21,7 +21,7 @@ export interface OfferStore {
 
 // ---------- localStorage ----------
 
-const KEY = "genial-colloc.offers";
+const KEY = "genial-coloc.offers";
 
 function read(): Offer[] {
   try {

@@ -108,7 +108,7 @@ export default function App() {
     <div className="app">
       <aside className="sidebar">
         <header className="brand">
-          <h1>Génial Colloc</h1>
+          <h1>Génial Coloc</h1>
           <p>Comparateur d'offres · Lyon</p>
         </header>
 

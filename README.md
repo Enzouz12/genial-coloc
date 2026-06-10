@@ -1,4 +1,4 @@
-# Génial Colloc
+# Génial Coloc
 
 Application web de comparaison d'annonces de location pour une recherche de colocation à Lyon. Les annonces sont affichées sur une carte interactive, colorées selon plusieurs critères, avec le temps de trajet réel jusqu'à l'Université Lyon 2 Campus Porte des Alpes. Le projet inclut une extension navigateur pour importer les annonces SeLoger et un stockage partagé en temps réel.
 
