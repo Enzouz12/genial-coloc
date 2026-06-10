@@ -105,3 +105,25 @@ export async function geocode(query: string): Promise<GeocodeResult | null> {
   }
   return null;
 }
+
+/**
+ * Géocodage inverse : adresse la plus proche d'un point cliqué sur la carte.
+ * Via la BAN (gratuit, sans clé), comme le géocodage direct.
+ */
+export async function reverseGeocode(
+  lat: number,
+  lng: number
+): Promise<GeocodeResult | null> {
+  const url = new URL("https://api-adresse.data.gouv.fr/reverse/");
+  url.searchParams.set("lat", String(lat));
+  url.searchParams.set("lon", String(lng));
+
+  const res = await fetch(url);
+  if (!res.ok) return null;
+  const data = await res.json();
+  const feature = data.features?.[0];
+  if (!feature) return null;
+
+  const [flng, flat] = feature.geometry.coordinates;
+  return { lat: flat, lng: flng, label: feature.properties.label };
+}
