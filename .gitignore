@@ -22,6 +22,9 @@ web-ext-artifacts
 .claude/
 CLAUDE.md
 
+# Dossier de location (documents personnels, jamais sur GitHub)
+dossier-location/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
