@@ -25,6 +25,11 @@ export default function App() {
   const [pinpointMode, setPinpointMode] = useState(false);
   const [pinned, setPinned] = useState<{ label: string; key: number } | null>(null);
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
+  // Onglet de la sidebar : « Ajouter » (saisie/édition) ou « Explorer » (filtres + liste).
+  // L'import par extension (#offer=) ouvre directement sur l'onglet Ajouter.
+  const [tab, setTab] = useState<"add" | "explore">(() =>
+    window.location.hash.startsWith("#offer=") ? "add" : "explore"
+  );
 
   // Offres après application des filtres (statut, loyer max, temps TCL max).
   const visibleOffers = useMemo(() => {
@@ -78,6 +83,8 @@ export default function App() {
   function selectOffer(offer: Offer | null) {
     setSelectedId(offer ? offer.id : null);
     setEditing(offer);
+    // Sélectionner une offre bascule sur l'onglet Ajouter pour voir l'édition.
+    if (offer) setTab("add");
   }
 
   async function handlePinpoint(lat: number, lng: number) {
@@ -105,30 +112,51 @@ export default function App() {
           <p>Comparateur d'offres · Lyon</p>
         </header>
 
-        <AddOfferForm
-          onAdd={handleAdd}
-          onUpdate={handleUpdate}
-          onCancelEdit={() => setEditing(null)}
-          editing={editing}
-          pinpointMode={pinpointMode}
-          onTogglePinpoint={() => setPinpointMode((v) => !v)}
-          pinnedLocation={pinned}
-        />
+        <div className="tabs">
+          <button
+            className={tab === "add" ? "active" : ""}
+            onClick={() => setTab("add")}
+          >
+            {editing ? "Éditer" : "Ajouter"}
+          </button>
+          <button
+            className={tab === "explore" ? "active" : ""}
+            onClick={() => setTab("explore")}
+          >
+            Explorer{offers.length ? ` (${offers.length})` : ""}
+          </button>
+        </div>
 
-        <Filters
-          filters={filters}
-          onChange={setFilters}
-          shown={visibleOffers.length}
-          total={offers.length}
-        />
+        {/* Les deux onglets restent montés (état du formulaire et import
+            par extension préservés), on bascule juste la visibilité. */}
+        <div hidden={tab !== "add"}>
+          <AddOfferForm
+            onAdd={handleAdd}
+            onUpdate={handleUpdate}
+            onCancelEdit={() => setEditing(null)}
+            editing={editing}
+            pinpointMode={pinpointMode}
+            onTogglePinpoint={() => setPinpointMode((v) => !v)}
+            pinnedLocation={pinned}
+          />
+        </div>
 
-        <OfferList
-          offers={visibleOffers}
-          selectedId={selectedId}
-          onSelect={selectOffer}
-          onSetStatus={handleSetStatus}
-          onRemove={handleRemove}
-        />
+        <div hidden={tab !== "explore"}>
+          <Filters
+            filters={filters}
+            onChange={setFilters}
+            shown={visibleOffers.length}
+            total={offers.length}
+          />
+
+          <OfferList
+            offers={visibleOffers}
+            selectedId={selectedId}
+            onSelect={selectOffer}
+            onSetStatus={handleSetStatus}
+            onRemove={handleRemove}
+          />
+        </div>
       </aside>
 
       <main className={pinpointMode ? "map-wrap pinpoint" : "map-wrap"}>
