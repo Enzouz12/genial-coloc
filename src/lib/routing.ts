@@ -69,9 +69,17 @@ export async function routeToCampus(point: {
 
   // Deux appels : transport en commun (itineraries) et vélo direct (direct).
   // directModes=BIKE supprime les itinéraires TC, d'où la séparation.
+  // maxDirectTime relève le plafond MOTIS par défaut (30 min) qui écarte
+  // silencieusement les trajets vélo plus longs (ex. Croix-Rousse → Bron).
   const [transitData, bikeData] = await Promise.all([
     plan({ fromPlace: from, toPlace: to, time: MORNING }),
-    plan({ fromPlace: from, toPlace: to, time: MORNING, directModes: "BIKE" }),
+    plan({
+      fromPlace: from,
+      toPlace: to,
+      time: MORNING,
+      directModes: "BIKE",
+      maxDirectTime: "5400",
+    }),
   ]);
 
   const result: RouteTimes = {};
