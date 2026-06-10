@@ -6,8 +6,8 @@ import { routeToCampus } from "../lib/routing";
 import { parsePasted } from "../lib/parseSeLoger";
 
 interface Props {
-  onAdd: (offer: Offer) => void;
-  onUpdate: (offer: Offer) => void;
+  onAdd: (offer: Offer) => Promise<void>;
+  onUpdate: (offer: Offer) => Promise<void>;
   onCancelEdit: () => void;
   editing: Offer | null;
   pinpointMode: boolean;
@@ -41,6 +41,8 @@ export function AddOfferForm({
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Avertissement non bloquant (ex. temps de trajet indisponibles à l'ajout).
+  const [notice, setNotice] = useState<string | null>(null);
 
   function resetForm() {
     setTitle("");
@@ -52,6 +54,7 @@ export function AddOfferForm({
     setStatus("new");
     setNotes("");
     setError(null);
+    setNotice(null);
   }
 
   // Pré-remplissage depuis l'extension navigateur (hash #offer=...).
@@ -120,6 +123,7 @@ export function AddOfferForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setNotice(null);
 
     const priceNum = parseInt(price, 10);
     if (Number.isNaN(priceNum) || !location.trim()) {
@@ -155,13 +159,18 @@ export function AddOfferForm({
       };
 
       if (editing) {
-        onUpdate({ ...editing, ...base });
+        await onUpdate({ ...editing, ...base });
       } else {
-        onAdd({ id: crypto.randomUUID(), ...base, createdAt: Date.now() });
+        await onAdd({ id: crypto.randomUUID(), ...base, createdAt: Date.now() });
       }
       resetForm();
+      if (times.transitMin == null && times.bikeMin == null) {
+        setNotice(
+          "Offre enregistrée, mais temps de trajet indisponibles (service injoignable). Utilise « Recalculer les temps » dans la liste."
+        );
+      }
     } catch {
-      setError("Erreur réseau pendant le calcul. Réessaie.");
+      setError("Erreur réseau pendant le calcul ou l'enregistrement. Réessaie.");
     } finally {
       setBusy(false);
     }
@@ -245,6 +254,7 @@ export function AddOfferForm({
       </label>
 
       {error && <p className="error">{error}</p>}
+      {notice && <p className="notice">{notice}</p>}
 
       <div className="form-actions">
         <button type="submit" disabled={busy}>

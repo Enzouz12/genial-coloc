@@ -134,6 +134,7 @@ body {
   background: rgba(59, 130, 246, 0.12);
 }
 .error { color: var(--danger); font-size: 13px; margin: 0; }
+.notice { color: #d9a514; font-size: 13px; margin: 0; }
 
 /* ---- Legend ---- */
 .legend {

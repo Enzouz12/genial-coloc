@@ -17,12 +17,16 @@ export interface RouteTimes {
   bikeMin?: number;
 }
 
-/** Prochain matin de semaine à 08h00 locale, figé pour comparer les offres. */
+/**
+ * Prochain mardi à 08h00 locale. Jour fixe (et pas « prochain jour ouvré »)
+ * pour que deux sessions ouvertes des jours différents de la même semaine
+ * comparent les offres sur le même matin de référence.
+ */
 function referenceMorning(): string {
   const d = new Date();
   d.setHours(8, 0, 0, 0);
   if (Date.now() >= d.getTime()) d.setDate(d.getDate() + 1);
-  while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
+  while (d.getDay() !== 2) d.setDate(d.getDate() + 1);
   return d.toISOString().replace(/\.\d{3}Z$/, "Z");
 }
 
@@ -72,8 +76,14 @@ export async function routeToCampus(point: {
 
   const result: RouteTimes = {};
 
+  // À courte distance du campus, MOTIS ne renvoie aucun itinéraire TC
+  // (la marche directe est plus rapide) : on prend alors la marche comme
+  // temps de trajet, sinon ces offres restent sans temps pour toujours.
   const transit = transitData?.itineraries ?? [];
-  const best = Math.min(...transit.map((j) => j.duration ?? Infinity));
+  const walk = transitData?.direct ?? [];
+  const best = Math.min(
+    ...[...transit, ...walk].map((j) => j.duration ?? Infinity)
+  );
   if (Number.isFinite(best)) result.transitMin = toMin(best);
 
   const bike = bikeData?.direct?.[0]?.duration;

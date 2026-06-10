@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Offer, OfferStatus } from "./types";
 import { store } from "./lib/storage";
 import { reverseGeocode, estimatedCommuteMinutes } from "./lib/geo";
+import { routeToCampus } from "./lib/routing";
 import { MapView, type MapMode } from "./components/MapView";
 import { AddOfferForm } from "./components/AddOfferForm";
 import { OfferList } from "./components/OfferList";
@@ -25,6 +26,8 @@ export default function App() {
   const [pinpointMode, setPinpointMode] = useState(false);
   const [pinned, setPinned] = useState<{ label: string; key: number } | null>(null);
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
+  // Offre dont les temps de trajet sont en cours de recalcul.
+  const [recalcId, setRecalcId] = useState<string | null>(null);
   // Onglet de la sidebar : « Ajouter » (saisie/édition) ou « Explorer » (filtres + liste).
   // L'import par extension (#offer=) ouvre directement sur l'onglet Ajouter.
   const [tab, setTab] = useState<"add" | "explore">(() =>
@@ -93,6 +96,22 @@ export default function App() {
     if (r) setPinned({ label: r.label, key: Date.now() });
   }
 
+  // Recalcule les temps de trajet d'une offre qui n'en a pas (service
+  // indisponible au moment de l'ajout). Ne touche pas aux autres champs.
+  async function handleRecalcTimes(offer: Offer) {
+    setRecalcId(offer.id);
+    try {
+      const times = await routeToCampus(offer);
+      if (times.transitMin == null && times.bikeMin == null) return;
+      await store.update({ ...offer, ...times });
+      setOffers(await store.getAll());
+    } catch {
+      setOffers(await store.getAll());
+    } finally {
+      setRecalcId(null);
+    }
+  }
+
   // Change le statut d'une offre, sans re-géocoder (mise à jour optimiste).
   async function handleSetStatus(offer: Offer, status: OfferStatus) {
     const updated = { ...offer, status };
@@ -155,6 +174,8 @@ export default function App() {
             onSelect={selectOffer}
             onSetStatus={handleSetStatus}
             onRemove={handleRemove}
+            onRecalcTimes={handleRecalcTimes}
+            recalcId={recalcId}
           />
         </div>
       </aside>

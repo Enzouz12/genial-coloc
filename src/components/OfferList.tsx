@@ -14,9 +14,21 @@ interface Props {
   onSelect: (offer: Offer) => void;
   onSetStatus: (offer: Offer, status: OfferStatus) => void;
   onRemove: (id: string) => void;
+  /** Relance le calcul des temps de trajet (offres sans temps réels). */
+  onRecalcTimes: (offer: Offer) => void;
+  /** Id de l'offre dont le recalcul est en cours, sinon null. */
+  recalcId: string | null;
 }
 
-export function OfferList({ offers, selectedId, onSelect, onSetStatus, onRemove }: Props) {
+export function OfferList({
+  offers,
+  selectedId,
+  onSelect,
+  onSetStatus,
+  onRemove,
+  onRecalcTimes,
+  recalcId,
+}: Props) {
   if (offers.length === 0) {
     return <p className="empty">Aucune offre pour l'instant. Ajoute-en une ! 👆</p>;
   }
@@ -82,6 +94,18 @@ export function OfferList({ offers, selectedId, onSelect, onSetStatus, onRemove 
                   <a href={o.url} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
                     Annonce ↗
                   </a>
+                )}
+                {(o.transitMin == null || o.bikeMin == null) && (
+                  <button
+                    className="link-action"
+                    disabled={o.id === recalcId}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRecalcTimes(o);
+                    }}
+                  >
+                    {o.id === recalcId ? "Calcul…" : "⟳ Recalculer les temps"}
+                  </button>
                 )}
                 <button
                   className="link-danger"
