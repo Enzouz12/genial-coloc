@@ -34,13 +34,11 @@ body {
 
 .brand h1 {
   margin: 0;
-  font-size: 22px;
-  background: linear-gradient(90deg, #22c55e, #eab308, #ef4444);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  color: #e0a82e;
 }
-.brand h1 { font-size: 20px; }
 .brand p { margin: 2px 0 12px; color: var(--muted); font-size: 12px; }
 
 /* ---- Onglets sidebar ---- */
