@@ -30,9 +30,9 @@ function Bar({ title, left, right }: { title: string; left: string; right: strin
   return (
     <div className="legend">
       <span className="legend-title">{title}</span>
-      <div className="legend-scale">
+      <span className="g-bar" />
+      <div className="legend-ends">
         <span className="g-green">{left}</span>
-        <span className="g-bar" />
         <span className="g-red">{right}</span>
       </div>
     </div>
