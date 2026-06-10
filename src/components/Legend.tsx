@@ -5,25 +5,23 @@ import type { MapMode } from "./MapView";
 export function Legend({ mode }: { mode: MapMode }) {
   const tcl = COMMUTE.thresholds;
   const bike = COMMUTE.bikeThresholds;
-  const priceLeft = `≤ ${BUDGET.green} €`;
-  const priceRight = `${BUDGET.red} €`;
 
   if (mode === "price") {
-    return <Bar title="Loyer" left={priceLeft} right={priceRight} />;
+    return <Bar title="Loyer mensuel (charges comprises)" left={`avantageux · ≤ ${BUDGET.green} €`} right={`plafond · ${BUDGET.red} €`} />;
   }
   if (mode === "transit") {
-    return <Bar title="Trajet TCL" left={`${tcl[0]} min`} right={`${tcl[tcl.length - 1]}+ min`} />;
+    return <Bar title="Trajet en TCL le matin" left={`proche · ${tcl[0]} min`} right={`loin · ${tcl[tcl.length - 1]}+ min`} />;
   }
   if (mode === "bike") {
-    return <Bar title="Trajet vélo" left={`${bike[0]} min`} right={`${bike[bike.length - 1]}+ min`} />;
+    return <Bar title="Trajet à vélo" left={`proche · ${bike[0]} min`} right={`loin · ${bike[bike.length - 1]}+ min`} />;
   }
   if (mode === "value") {
-    return <Bar title="Prix au m²" left={`≤ ${VALUE.green} €/m²`} right={`${VALUE.red}+ €/m²`} />;
+    return <Bar title="Prix au m² (loyer ÷ surface)" left={`bon · ≤ ${VALUE.green} €/m²`} right={`cher · ${VALUE.red}+ €/m²`} />;
   }
   return (
     <div className="legend-mixed">
-      <Bar title="Intérieur · loyer" left={priceLeft} right={priceRight} />
-      <Bar title="Contour · TCL" left={`${tcl[0]} min`} right={`${tcl[tcl.length - 1]}+ min`} />
+      <Bar title="Remplissage · loyer mensuel" left={`≤ ${BUDGET.green} €`} right={`${BUDGET.red} €`} />
+      <Bar title="Contour · trajet en TCL" left={`${tcl[0]} min`} right={`${tcl[tcl.length - 1]}+ min`} />
     </div>
   );
 }
@@ -32,9 +30,11 @@ function Bar({ title, left, right }: { title: string; left: string; right: strin
   return (
     <div className="legend">
       <span className="legend-title">{title}</span>
-      <span className="g-green">{left}</span>
-      <span className="g-bar" />
-      <span className="g-red">{right}</span>
+      <div className="legend-scale">
+        <span className="g-green">{left}</span>
+        <span className="g-bar" />
+        <span className="g-red">{right}</span>
+      </div>
     </div>
   );
 }

@@ -115,22 +115,23 @@ body {
 /* ---- Legend ---- */
 .legend {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 6px;
   margin: 10px 0;
   font-size: 12px;
   color: var(--muted);
 }
+.legend-scale { display: flex; align-items: center; gap: 10px; }
 .g-bar {
   flex: 1;
-  height: 8px;
-  border-radius: 4px;
+  height: 10px;
+  border-radius: 5px;
   background: linear-gradient(90deg, hsl(120,75%,45%), hsl(60,75%,45%), hsl(0,75%,45%));
 }
-.g-green { color: hsl(120,75%,55%); }
-.g-red { color: hsl(0,75%,60%); }
-.legend-title { font-weight: 600; color: var(--text); margin-right: 2px; }
-.legend-mixed { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; }
+.g-green { color: hsl(120,75%,55%); white-space: nowrap; }
+.g-red { color: hsl(0,75%,60%); white-space: nowrap; }
+.legend-title { font-weight: 600; color: var(--text); }
+.legend-mixed { display: flex; flex-direction: column; gap: 12px; margin: 10px 0; }
 .legend-mixed .legend { margin: 0; }
 
 /* ---- Offer list ---- */
@@ -214,8 +215,8 @@ body {
   bottom: 18px;
   left: 14px;
   z-index: 1000;
-  width: 210px;
-  padding: 10px 12px;
+  width: 256px;
+  padding: 12px 14px;
   background: rgba(24, 27, 34, 0.88);
   backdrop-filter: blur(8px);
   border: 1px solid var(--border);
