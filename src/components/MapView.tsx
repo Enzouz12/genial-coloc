@@ -1,4 +1,12 @@
-import { MapContainer, TileLayer, CircleMarker, Marker, Popup, Tooltip } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  CircleMarker,
+  Marker,
+  Popup,
+  Tooltip,
+  useMapEvents,
+} from "react-leaflet";
 import L from "leaflet";
 import type { Offer } from "../types";
 import { CAMPUS, LYON_CENTER, COMMUTE } from "../config";
@@ -21,7 +29,10 @@ const campusIcon = L.divIcon({
 interface Props {
   offers: Offer[];
   selectedId: string | null;
-  onSelect: (id: string) => void;
+  onSelect: (offer: Offer) => void;
+  onBackgroundClick: () => void;
+  onPinpoint: (lat: number, lng: number) => void;
+  pinpointMode: boolean;
   mode: MapMode;
 }
 
@@ -33,7 +44,30 @@ function bikeMinutesOf(o: Offer): number {
   return o.bikeMin ?? estimatedCommuteMinutes(o);
 }
 
-export function MapView({ offers, selectedId, onSelect, mode }: Props) {
+/** Capte les clics sur le fond de carte (hors marqueurs). */
+function MapClicks({
+  pinpointMode,
+  onPinpoint,
+  onBackgroundClick,
+}: Pick<Props, "pinpointMode" | "onPinpoint" | "onBackgroundClick">) {
+  useMapEvents({
+    click(e) {
+      if (pinpointMode) onPinpoint(e.latlng.lat, e.latlng.lng);
+      else onBackgroundClick();
+    },
+  });
+  return null;
+}
+
+export function MapView({
+  offers,
+  selectedId,
+  onSelect,
+  onBackgroundClick,
+  onPinpoint,
+  pinpointMode,
+  mode,
+}: Props) {
   return (
     <MapContainer
       center={[LYON_CENTER.lat, LYON_CENTER.lng]}
@@ -43,6 +77,12 @@ export function MapView({ offers, selectedId, onSelect, mode }: Props) {
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
         url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+      />
+
+      <MapClicks
+        pinpointMode={pinpointMode}
+        onPinpoint={onPinpoint}
+        onBackgroundClick={onBackgroundClick}
       />
 
       <Marker position={[CAMPUS.lat, CAMPUS.lng]} icon={campusIcon}>
@@ -86,6 +126,7 @@ export function MapView({ offers, selectedId, onSelect, mode }: Props) {
             key={o.id}
             center={[o.lat, o.lng]}
             radius={isSel ? 13 : 9}
+            bubblingMouseEvents={false}
             pathOptions={{
               color: stroke,
               weight,
@@ -93,7 +134,7 @@ export function MapView({ offers, selectedId, onSelect, mode }: Props) {
               fillOpacity: 0.9,
               className: isSel ? "gc-marker selected" : "gc-marker",
             }}
-            eventHandlers={{ click: () => onSelect(o.id) }}
+            eventHandlers={{ click: () => onSelect(o) }}
           >
             <Tooltip direction="top" className="gc-tip">
               {o.price} € · TCL {Math.round(transitM)} min

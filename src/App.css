@@ -91,6 +91,25 @@ body {
   cursor: pointer;
 }
 .btn-ghost:hover { color: var(--text); border-color: #3a4250; }
+
+.pin-toggle {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--muted);
+  border-radius: 8px;
+  padding: 7px 11px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.pin-toggle:hover { color: var(--text); border-color: #3a4250; }
+.pin-toggle.active {
+  border-style: solid;
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(59, 130, 246, 0.12);
+}
 .error { color: var(--danger); font-size: 13px; margin: 0; }
 
 /* ---- Legend ---- */
@@ -158,6 +177,7 @@ body {
 .map-wrap { position: relative; }
 .map { height: 100%; width: 100%; }
 .leaflet-container { background: #e6e8ec; }
+.map-wrap.pinpoint .leaflet-container { cursor: crosshair; }
 
 /* Sélecteur de vue flottant */
 .map-modes {

@@ -10,12 +10,11 @@ function commuteClass(threshold: number): string {
 interface Props {
   offers: Offer[];
   selectedId: string | null;
-  onSelect: (id: string) => void;
-  onEdit: (offer: Offer) => void;
+  onSelect: (offer: Offer) => void;
   onRemove: (id: string) => void;
 }
 
-export function OfferList({ offers, selectedId, onSelect, onEdit, onRemove }: Props) {
+export function OfferList({ offers, selectedId, onSelect, onRemove }: Props) {
   if (offers.length === 0) {
     return <p className="empty">Aucune offre pour l'instant. Ajoute-en une ! 👆</p>;
   }
@@ -29,7 +28,7 @@ export function OfferList({ offers, selectedId, onSelect, onEdit, onRemove }: Pr
           <li
             key={o.id}
             className={o.id === selectedId ? "offer selected" : "offer"}
-            onClick={() => onSelect(o.id)}
+            onClick={() => onSelect(o)}
           >
             <span className="dot" style={{ background: priceColor(o.price) }} />
             <div className="offer-body">
@@ -62,15 +61,6 @@ export function OfferList({ offers, selectedId, onSelect, onEdit, onRemove }: Pr
                     Annonce ↗
                   </a>
                 )}
-                <button
-                  className="link-action"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit(o);
-                  }}
-                >
-                  Modifier
-                </button>
                 <button
                   className="link-danger"
                   onClick={(e) => {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Offer } from "./types";
 import { store } from "./lib/storage";
+import { reverseGeocode } from "./lib/geo";
 import { MapView, type MapMode } from "./components/MapView";
 import { AddOfferForm } from "./components/AddOfferForm";
 import { OfferList } from "./components/OfferList";
@@ -20,6 +21,8 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mode, setMode] = useState<MapMode>("price");
   const [editing, setEditing] = useState<Offer | null>(null);
+  const [pinpointMode, setPinpointMode] = useState(false);
+  const [pinned, setPinned] = useState<{ label: string; key: number } | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -53,9 +56,17 @@ export default function App() {
     if (editing?.id === id) setEditing(null);
   }
 
-  function handleEdit(offer: Offer) {
+  // Sélectionner une offre (marqueur ou liste) la passe en édition ;
+  // sélectionner « rien » (clic dans le vide) revient au mode ajout.
+  function selectOffer(offer: Offer | null) {
+    setSelectedId(offer ? offer.id : null);
     setEditing(offer);
-    setSelectedId(offer.id);
+  }
+
+  async function handlePinpoint(lat: number, lng: number) {
+    setPinpointMode(false);
+    const r = await reverseGeocode(lat, lng);
+    if (r) setPinned({ label: r.label, key: Date.now() });
   }
 
   return (
@@ -71,18 +82,20 @@ export default function App() {
           onUpdate={handleUpdate}
           onCancelEdit={() => setEditing(null)}
           editing={editing}
+          pinpointMode={pinpointMode}
+          onTogglePinpoint={() => setPinpointMode((v) => !v)}
+          pinnedLocation={pinned}
         />
 
         <OfferList
           offers={offers}
           selectedId={selectedId}
-          onSelect={setSelectedId}
-          onEdit={handleEdit}
+          onSelect={selectOffer}
           onRemove={handleRemove}
         />
       </aside>
 
-      <main className="map-wrap">
+      <main className={pinpointMode ? "map-wrap pinpoint" : "map-wrap"}>
         <div className="map-modes">
           {MODES.map((m) => (
             <button
@@ -100,7 +113,10 @@ export default function App() {
         <MapView
           offers={offers}
           selectedId={selectedId}
-          onSelect={setSelectedId}
+          onSelect={selectOffer}
+          onBackgroundClick={() => selectOffer(null)}
+          onPinpoint={handlePinpoint}
+          pinpointMode={pinpointMode}
           mode={mode}
         />
       </main>
