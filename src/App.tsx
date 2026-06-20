@@ -49,6 +49,16 @@ export default function App() {
     });
   }, [offers, filters]);
 
+  // Offres affichées sur la carte : on masque les écartées (elles restent
+  // dans la liste, triées en bas), sauf si on filtre explicitement dessus.
+  const mapOffers = useMemo(
+    () =>
+      filters.status === "rejected"
+        ? visibleOffers
+        : visibleOffers.filter((o) => (o.status ?? "new") !== "rejected"),
+    [visibleOffers, filters.status]
+  );
+
   useEffect(() => {
     let active = true;
     const load = () => store.getAll().then((o) => active && setOffers(o));
@@ -196,7 +206,7 @@ export default function App() {
           <Legend mode={mode} />
         </div>
         <MapView
-          offers={visibleOffers}
+          offers={mapOffers}
           selectedId={selectedId}
           onSelect={selectOffer}
           onBackgroundClick={() => selectOffer(null)}
