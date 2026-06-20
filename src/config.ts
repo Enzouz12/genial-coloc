@@ -39,10 +39,12 @@ export const COMMUTE = {
   averageSpeedKmh: 14,
   /** Facteur de détour : le trajet réel est plus long que la ligne droite. */
   detourFactor: 1.35,
-  /** Paliers de temps de trajet TCL, en minutes. */
-  thresholds: [15, 30, 45, 60],
-  /** Paliers de temps de trajet à vélo, en minutes (trajets plus courts). */
-  bikeThresholds: [10, 20, 30, 40],
+  /** Paliers de temps de trajet TCL, en minutes. Calés sur les temps réels
+   *  vers le campus de Bron (≈ 24–51 min depuis l'agglo lyonnaise). */
+  thresholds: [20, 30, 40, 50],
+  /** Paliers de temps de trajet à vélo, en minutes. Au-delà de ~45 min de
+   *  vélo le trajet quotidien n'est plus réaliste → borne haute à 45. */
+  bikeThresholds: [15, 25, 35, 45],
 } as const;
 
 /** Noms des colocataires (pour le champ "ajouté par"). */
