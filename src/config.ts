@@ -4,8 +4,8 @@ import type { OfferStatus } from "./types";
 /** Point de référence : Université Lyon 2 — Campus Porte des Alpes (Bron). */
 export const CAMPUS = {
   name: "Lyon 2 — Campus Porte des Alpes",
-  lat: 45.7309,
-  lng: 4.8794,
+  lat: 45.722593,
+  lng: 4.915127,
 } as const;
 
 /** Centre de carte par défaut (Lyon). */
