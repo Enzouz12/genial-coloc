@@ -144,7 +144,7 @@ export default function App() {
   }
 
   // Handshake : bascule l'intérêt de « moi » pour une offre. Quand les deux
-  // colocataires ont validé, l'offre passe en « à visiter » — mais seulement
+  // colocataires ont validé, l'offre passe en « à appeler » — mais seulement
   // si elle était encore « nouvelle » (on n'écrase pas un statut posé à la
   // main). On ne rétrograde jamais si un intérêt est ensuite retiré.
   async function handleToggleInterest(offer: Offer) {
@@ -154,7 +154,7 @@ export default function App() {
     const interestedBy = [...set];
     const allIn = ROOMMATES.every((r) => set.has(r));
     const status: OfferStatus =
-      allIn && (offer.status ?? "new") === "new" ? "to_visit" : offer.status ?? "new";
+      allIn && (offer.status ?? "new") === "new" ? "to_call" : offer.status ?? "new";
     const updated = { ...offer, interestedBy, status };
     setOffers((prev) => prev.map((o) => (o.id === offer.id ? updated : o)));
     try {

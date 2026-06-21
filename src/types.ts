@@ -3,6 +3,7 @@
 /** Statut de suivi d'une offre pendant la recherche. */
 export type OfferStatus =
   | "new"
+  | "to_call"
   | "to_visit"
   | "visited"
   | "favorite"

@@ -53,6 +53,7 @@ export const ROOMMATES = ["Enzo", "Esteban"] as const;
 /** Statuts de suivi d'une offre, avec libellé et couleur. */
 export const STATUSES: { id: OfferStatus; label: string; color: string }[] = [
   { id: "new", label: "Nouvelle", color: "#9aa0aa" },
+  { id: "to_call", label: "À appeler", color: "#f59e0b" },
   { id: "to_visit", label: "À visiter", color: "#3b82f6" },
   { id: "visited", label: "Visitée", color: "#a855f7" },
   { id: "favorite", label: "Favori", color: "#22c55e" },
