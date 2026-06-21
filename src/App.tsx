@@ -251,7 +251,9 @@ export default function App() {
         <MapView
           offers={mapOffers}
           selectedId={selectedId}
+          me={me}
           onSelect={selectOffer}
+          onToggleInterest={handleToggleInterest}
           onBackgroundClick={() => selectOffer(null)}
           onPinpoint={handlePinpoint}
           pinpointMode={pinpointMode}

@@ -9,7 +9,7 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import type { Offer } from "../types";
-import { CAMPUS, LYON_CENTER, COMMUTE } from "../config";
+import { CAMPUS, LYON_CENTER, COMMUTE, ROOMMATES } from "../config";
 import { priceColor, timeColor, valueColor } from "../lib/color";
 import { distanceToCampusKm, estimatedCommuteMinutes } from "../lib/geo";
 
@@ -29,7 +29,11 @@ const campusIcon = L.divIcon({
 interface Props {
   offers: Offer[];
   selectedId: string | null;
+  /** Colocataire actif (pour le bouton « Ça m'intéresse » du popup). */
+  me: string;
   onSelect: (offer: Offer) => void;
+  /** Bascule l'intérêt de « moi » pour une offre (handshake). */
+  onToggleInterest: (offer: Offer) => void;
   onBackgroundClick: () => void;
   onPinpoint: (lat: number, lng: number) => void;
   pinpointMode: boolean;
@@ -62,7 +66,9 @@ function MapClicks({
 export function MapView({
   offers,
   selectedId,
+  me,
   onSelect,
+  onToggleInterest,
   onBackgroundClick,
   onPinpoint,
   pinpointMode,
@@ -98,6 +104,9 @@ export function MapView({
         const bikeM = bikeMinutesOf(o);
         const dist = distanceToCampusKm(o);
         const isSel = o.id === selectedId;
+        const interested = o.interestedBy ?? [];
+        const iAmIn = interested.includes(me);
+        const isMatch = ROOMMATES.every((r) => interested.includes(r));
 
         // Remplissage selon le mode ; le mixte garde le loyer à l'intérieur.
         const fill =
@@ -164,6 +173,15 @@ export function MapView({
               <a href={o.url} target="_blank" rel="noreferrer">
                 Voir l'annonce
               </a>
+              <div className="popup-handshake">
+                <button
+                  className={iAmIn ? "interest-btn active" : "interest-btn"}
+                  onClick={() => onToggleInterest(o)}
+                >
+                  {iAmIn ? "✓ Tu es partant" : "👍 Ça m'intéresse"}
+                </button>
+                {isMatch && <span className="match-badge">🤝 Match</span>}
+              </div>
             </Popup>
           </CircleMarker>
         );

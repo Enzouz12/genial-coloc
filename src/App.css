@@ -310,6 +310,14 @@ body {
   border-radius: 999px;
   padding: 2px 8px;
 }
+/* Bloc handshake dans le popup de la carte */
+.popup-handshake {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
 
 /* ---- Map ---- */
 .map-wrap { position: relative; }
