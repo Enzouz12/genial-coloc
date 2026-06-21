@@ -14,13 +14,16 @@ create table if not exists public.offers (
   transit_min integer,
   bike_min    integer,
   added_by    text,
-  notes       text,
-  status      text,
-  created_at  bigint not null
+  notes         text,
+  status        text,
+  interested_by text[],
+  created_at    bigint not null
 );
 
 -- Migration pour une base déjà créée (sans la colonne status) :
 -- alter table public.offers add column if not exists status text;
+-- Migration handshake (colocataires ayant validé leur intérêt) :
+-- alter table public.offers add column if not exists interested_by text[];
 
 -- Row Level Security activée, avec un accès partagé sans authentification.
 -- Convient à un outil personnel à deux. La clé anon suffit pour lire/écrire.

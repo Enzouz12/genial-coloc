@@ -1,5 +1,5 @@
 import type { Offer, OfferStatus } from "../types";
-import { STATUSES, statusColor } from "../config";
+import { ROOMMATES, STATUSES, statusColor } from "../config";
 import { priceColor } from "../lib/color";
 import { distanceToCampusKm, commuteBucket } from "../lib/geo";
 
@@ -11,8 +11,12 @@ function commuteClass(threshold: number): string {
 interface Props {
   offers: Offer[];
   selectedId: string | null;
+  /** Colocataire actif (pour le bouton « Ça m'intéresse »). */
+  me: string;
   onSelect: (offer: Offer) => void;
   onSetStatus: (offer: Offer, status: OfferStatus) => void;
+  /** Bascule l'intérêt de « moi » pour une offre (handshake). */
+  onToggleInterest: (offer: Offer) => void;
   onRemove: (id: string) => void;
   /** Relance le calcul des temps de trajet (offres sans temps réels). */
   onRecalcTimes: (offer: Offer) => void;
@@ -23,8 +27,10 @@ interface Props {
 export function OfferList({
   offers,
   selectedId,
+  me,
   onSelect,
   onSetStatus,
+  onToggleInterest,
   onRemove,
   onRecalcTimes,
   recalcId,
@@ -43,6 +49,9 @@ export function OfferList({
       {ordered.map((o) => {
         const dist = distanceToCampusKm(o);
         const commute = commuteBucket(o);
+        const interested = o.interestedBy ?? [];
+        const iAmIn = interested.includes(me);
+        const isMatch = ROOMMATES.every((r) => interested.includes(r));
         return (
           <li
             key={o.id}
@@ -75,6 +84,28 @@ export function OfferList({
                 {o.addedBy ? ` · ${o.addedBy}` : ""}
               </div>
               {o.notes && <div className="offer-notes">{o.notes}</div>}
+              <div className="handshake">
+                <button
+                  className={iAmIn ? "interest-btn active" : "interest-btn"}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleInterest(o);
+                  }}
+                >
+                  {iAmIn ? "✓ Tu es partant" : "👍 Ça m'intéresse"}
+                </button>
+                <span className="interest-tags">
+                  {ROOMMATES.map((r) => (
+                    <span
+                      key={r}
+                      className={interested.includes(r) ? "tag in" : "tag out"}
+                    >
+                      {interested.includes(r) ? "✓" : "◻"} {r}
+                    </span>
+                  ))}
+                </span>
+                {isMatch && <span className="match-badge">🤝 Match</span>}
+              </div>
               <div className="offer-actions">
                 <select
                   className="status-select"

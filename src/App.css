@@ -32,6 +32,31 @@ body {
   padding: 14px;
 }
 
+.brand {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.me-select {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 10px;
+  color: var(--muted);
+  text-align: right;
+  white-space: nowrap;
+}
+.me-select select {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 4px 7px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+}
 .brand h1 {
   margin: 0;
   font-size: 21px;
@@ -247,6 +272,44 @@ body {
 .offer-actions a { color: var(--accent); text-decoration: none; }
 .link-danger { background: none; border: none; color: var(--danger); cursor: pointer; padding: 0; font-size: 12px; }
 .link-action { background: none; border: none; color: var(--accent); cursor: pointer; padding: 0; font-size: 12px; }
+
+/* ---- Handshake d'intérêt ---- */
+.handshake {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.interest-btn {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.interest-btn:hover { border-color: #22c55e; }
+.interest-btn.active {
+  border-color: #22c55e;
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.12);
+  font-weight: 600;
+}
+.interest-tags { display: flex; gap: 6px; font-size: 11px; }
+.interest-tags .tag.in { color: #22c55e; font-weight: 600; }
+.interest-tags .tag.out { color: var(--muted); }
+.match-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.14);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
 
 /* ---- Map ---- */
 .map-wrap { position: relative; }

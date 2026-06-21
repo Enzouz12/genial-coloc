@@ -33,6 +33,8 @@ export interface Offer {
   status?: OfferStatus;
   /** Qui a ajouté l'offre (toi / ton·ta coloc). */
   addedBy?: string;
+  /** Colocataires ayant validé leur intérêt (handshake). */
+  interestedBy?: string[];
   /** Notes libres (étage, meublé, dispo...). */
   notes?: string;
   createdAt: number;

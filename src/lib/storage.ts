@@ -72,6 +72,7 @@ interface OfferRow {
   notes: string | null;
   created_at: number;
   status?: string | null;
+  interested_by?: string[] | null;
 }
 
 function toRow(o: Offer): OfferRow {
@@ -91,20 +92,22 @@ function toRow(o: Offer): OfferRow {
     notes: o.notes ?? null,
     created_at: o.createdAt,
     status: o.status ?? null,
+    interested_by: o.interestedBy ?? null,
   };
 }
 
-/** Retire le statut d'une ligne (repli si la colonne n'existe pas en base). */
-function withoutStatus(row: OfferRow): OfferRow {
+/** Retire les colonnes optionnelles d'une ligne (repli si absentes en base). */
+function withoutOptionalColumns(row: OfferRow): OfferRow {
   const clone = { ...row };
   delete clone.status;
+  delete clone.interested_by;
   return clone;
 }
 
-/** Vrai si l'erreur Supabase vient d'une colonne `status` absente. */
-function missingStatusColumn(error: { code?: string; message?: string } | null): boolean {
+/** Vrai si l'erreur Supabase vient d'une colonne optionnelle absente. */
+function missingOptionalColumn(error: { code?: string; message?: string } | null): boolean {
   if (!error) return false;
-  return error.code === "PGRST204" || /status/i.test(error.message ?? "");
+  return error.code === "PGRST204" || /status|interested/i.test(error.message ?? "");
 }
 
 function fromRow(r: OfferRow): Offer {
@@ -124,6 +127,7 @@ function fromRow(r: OfferRow): Offer {
     notes: r.notes ?? undefined,
     createdAt: r.created_at,
     status: (r.status as OfferStatus) ?? undefined,
+    interestedBy: r.interested_by ?? undefined,
   };
 }
 
@@ -139,18 +143,18 @@ export const supabaseStore: OfferStore = {
   async add(offer) {
     const row = toRow(offer);
     let { error } = await supabase!.from("offers").insert(row);
-    if (error && missingStatusColumn(error)) {
-      ({ error } = await supabase!.from("offers").insert(withoutStatus(row)));
+    if (error && missingOptionalColumn(error)) {
+      ({ error } = await supabase!.from("offers").insert(withoutOptionalColumns(row)));
     }
     if (error) throw error;
   },
   async update(offer) {
     const row = toRow(offer);
     let { error } = await supabase!.from("offers").update(row).eq("id", offer.id);
-    if (error && missingStatusColumn(error)) {
+    if (error && missingOptionalColumn(error)) {
       ({ error } = await supabase!
         .from("offers")
-        .update(withoutStatus(row))
+        .update(withoutOptionalColumns(row))
         .eq("id", offer.id));
     }
     if (error) throw error;

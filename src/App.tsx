@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Offer, OfferStatus } from "./types";
+import { ROOMMATES } from "./config";
 import { store } from "./lib/storage";
+import { getMe, setMe as persistMe } from "./lib/identity";
 import { reverseGeocode, estimatedCommuteMinutes } from "./lib/geo";
 import { routeToCampus } from "./lib/routing";
 import { MapView, type MapMode } from "./components/MapView";
@@ -26,6 +28,8 @@ export default function App() {
   const [pinpointMode, setPinpointMode] = useState(false);
   const [pinned, setPinned] = useState<{ label: string; key: number } | null>(null);
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
+  // Colocataire actif sur ce navigateur (pour le handshake d'intérêt).
+  const [me, setMe] = useState<string>(getMe);
   // Offre dont les temps de trajet sont en cours de recalcul.
   const [recalcId, setRecalcId] = useState<string | null>(null);
   // Onglet de la sidebar : « Ajouter » (saisie/édition) ou « Explorer » (filtres + liste).
@@ -133,12 +137,49 @@ export default function App() {
     }
   }
 
+  // Mémorise le colocataire actif (pour le handshake).
+  function handleSetMe(name: string) {
+    setMe(name);
+    persistMe(name);
+  }
+
+  // Handshake : bascule l'intérêt de « moi » pour une offre. Quand les deux
+  // colocataires ont validé, l'offre passe en « à visiter » — mais seulement
+  // si elle était encore « nouvelle » (on n'écrase pas un statut posé à la
+  // main). On ne rétrograde jamais si un intérêt est ensuite retiré.
+  async function handleToggleInterest(offer: Offer) {
+    const set = new Set(offer.interestedBy ?? []);
+    if (set.has(me)) set.delete(me);
+    else set.add(me);
+    const interestedBy = [...set];
+    const allIn = ROOMMATES.every((r) => set.has(r));
+    const status: OfferStatus =
+      allIn && (offer.status ?? "new") === "new" ? "to_visit" : offer.status ?? "new";
+    const updated = { ...offer, interestedBy, status };
+    setOffers((prev) => prev.map((o) => (o.id === offer.id ? updated : o)));
+    try {
+      await store.update(updated);
+    } catch {
+      setOffers(await store.getAll());
+    }
+  }
+
   return (
     <div className="app">
       <aside className="sidebar">
         <header className="brand">
-          <h1>Génial Coloc</h1>
-          <p>Comparateur d'offres · Lyon</p>
+          <div>
+            <h1>Génial Coloc</h1>
+            <p>Comparateur d'offres · Lyon</p>
+          </div>
+          <label className="me-select">
+            Je suis
+            <select value={me} onChange={(e) => handleSetMe(e.target.value)}>
+              {ROOMMATES.map((r) => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
+          </label>
         </header>
 
         <div className="tabs">
@@ -181,8 +222,10 @@ export default function App() {
           <OfferList
             offers={visibleOffers}
             selectedId={selectedId}
+            me={me}
             onSelect={selectOffer}
             onSetStatus={handleSetStatus}
+            onToggleInterest={handleToggleInterest}
             onRemove={handleRemove}
             onRecalcTimes={handleRecalcTimes}
             recalcId={recalcId}
