@@ -8,6 +8,7 @@ import { routeToCampus } from "./lib/routing";
 import { MapView, type MapMode } from "./components/MapView";
 import { AddOfferForm } from "./components/AddOfferForm";
 import { OfferList } from "./components/OfferList";
+import { OfferNotesModal } from "./components/OfferNotesModal";
 import { Legend } from "./components/Legend";
 import { Filters, EMPTY_FILTERS, type FilterState } from "./components/Filters";
 import "./App.css";
@@ -30,6 +31,8 @@ export default function App() {
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
   // Colocataire actif sur ce navigateur (pour le handshake d'intérêt).
   const [me, setMe] = useState<string>(getMe);
+  // Offre dont la modale de notes structurées est ouverte, sinon null.
+  const [notesOffer, setNotesOffer] = useState<Offer | null>(null);
   // Offre dont les temps de trajet sont en cours de recalcul.
   const [recalcId, setRecalcId] = useState<string | null>(null);
   // Onglet de la sidebar : « Ajouter » (saisie/édition) ou « Explorer » (filtres + liste).
@@ -143,6 +146,18 @@ export default function App() {
     persistMe(name);
   }
 
+  // Enregistre les notes structurées d'une offre (mise à jour optimiste,
+  // sans bascule d'onglet/sélection), puis ferme la modale.
+  async function handleSaveNotes(updated: Offer) {
+    setOffers((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
+    setNotesOffer(null);
+    try {
+      await store.update(updated);
+    } catch {
+      setOffers(await store.getAll());
+    }
+  }
+
   // Handshake : bascule l'intérêt de « moi » pour une offre. Quand les deux
   // colocataires ont validé, l'offre passe en « à appeler » — mais seulement
   // si elle était encore « nouvelle » (on n'écrase pas un statut posé à la
@@ -226,6 +241,7 @@ export default function App() {
             onSelect={selectOffer}
             onSetStatus={handleSetStatus}
             onToggleInterest={handleToggleInterest}
+            onOpenNotes={setNotesOffer}
             onRemove={handleRemove}
             onRecalcTimes={handleRecalcTimes}
             recalcId={recalcId}
@@ -254,12 +270,21 @@ export default function App() {
           me={me}
           onSelect={selectOffer}
           onToggleInterest={handleToggleInterest}
+          onOpenNotes={setNotesOffer}
           onBackgroundClick={() => selectOffer(null)}
           onPinpoint={handlePinpoint}
           pinpointMode={pinpointMode}
           mode={mode}
         />
       </main>
+
+      {notesOffer && (
+        <OfferNotesModal
+          offer={notesOffer}
+          onClose={() => setNotesOffer(null)}
+          onSave={handleSaveNotes}
+        />
+      )}
     </div>
   );
 }

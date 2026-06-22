@@ -17,6 +17,8 @@ interface Props {
   onSetStatus: (offer: Offer, status: OfferStatus) => void;
   /** Bascule l'intérêt de « moi » pour une offre (handshake). */
   onToggleInterest: (offer: Offer) => void;
+  /** Ouvre la modale de notes structurées d'une offre. */
+  onOpenNotes: (offer: Offer) => void;
   onRemove: (id: string) => void;
   /** Relance le calcul des temps de trajet (offres sans temps réels). */
   onRecalcTimes: (offer: Offer) => void;
@@ -31,6 +33,7 @@ export function OfferList({
   onSelect,
   onSetStatus,
   onToggleInterest,
+  onOpenNotes,
   onRemove,
   onRecalcTimes,
   recalcId,
@@ -52,6 +55,10 @@ export function OfferList({
         const interested = o.interestedBy ?? [];
         const iAmIn = interested.includes(me);
         const isMatch = ROOMMATES.every((r) => interested.includes(r));
+        const d = o.details;
+        const nbContacts = d?.contacts?.length ?? 0;
+        const nbLinks = d?.links?.length ?? 0;
+        const hasDetails = !!(d?.visitDate || nbContacts || nbLinks);
         return (
           <li
             key={o.id}
@@ -84,6 +91,13 @@ export function OfferList({
                 {o.addedBy ? ` · ${o.addedBy}` : ""}
               </div>
               {o.notes && <div className="offer-notes">{o.notes}</div>}
+              {hasDetails && (
+                <div className="offer-details-summary">
+                  {d?.visitDate && <span>📅 {d.visitDate}</span>}
+                  {nbContacts > 0 && <span>👤 {nbContacts}</span>}
+                  {nbLinks > 0 && <span>🔗 {nbLinks}</span>}
+                </div>
+              )}
               <div className="handshake">
                 <button
                   className={iAmIn ? "interest-btn active" : "interest-btn"}
@@ -126,6 +140,15 @@ export function OfferList({
                     Annonce ↗
                   </a>
                 )}
+                <button
+                  className="link-action"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenNotes(o);
+                  }}
+                >
+                  📝 Notes
+                </button>
                 {(o.transitMin == null || o.bikeMin == null) && (
                   <button
                     className="link-action"

@@ -1,5 +1,30 @@
 // Modèle de données central de Génial Coloc.
 
+/** Un contact lié à une annonce (proprio, agence, locataire actuel…). */
+export interface OfferContact {
+  id: string;
+  /** Rôle ou source libre : « Proprio », « Agence Foncia », « Locataire actuel »… */
+  label?: string;
+  name?: string;
+  phone?: string;
+  email?: string;
+}
+
+/** Un lien associé à une annonce (site, annonce secondaire, plan…). */
+export interface OfferLink {
+  id: string;
+  label?: string;
+  url: string;
+}
+
+/** Notes structurées d'une annonce (contacts, liens, visite). */
+export interface OfferDetails {
+  /** Date/heure de visite, texte libre (ex. « mar. 1 juil. · 18h30 »). */
+  visitDate?: string;
+  contacts?: OfferContact[];
+  links?: OfferLink[];
+}
+
 /** Statut de suivi d'une offre pendant la recherche. */
 export type OfferStatus =
   | "new"
@@ -38,6 +63,8 @@ export interface Offer {
   interestedBy?: string[];
   /** Notes libres (étage, meublé, dispo...). */
   notes?: string;
+  /** Notes structurées (contacts, liens, date de visite). */
+  details?: OfferDetails;
   createdAt: number;
 }
 

@@ -17,6 +17,7 @@ create table if not exists public.offers (
   notes         text,
   status        text,
   interested_by text[],
+  details       jsonb,
   created_at    bigint not null
 );
 
@@ -24,6 +25,8 @@ create table if not exists public.offers (
 -- alter table public.offers add column if not exists status text;
 -- Migration handshake (colocataires ayant validé leur intérêt) :
 -- alter table public.offers add column if not exists interested_by text[];
+-- Migration notes structurées (contacts, liens, date de visite) :
+-- alter table public.offers add column if not exists details jsonb;
 
 -- Row Level Security activée, avec un accès partagé sans authentification.
 -- Convient à un outil personnel à deux. La clé anon suffit pour lire/écrire.

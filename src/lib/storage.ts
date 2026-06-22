@@ -1,4 +1,4 @@
-import type { Offer, OfferStatus } from "../types";
+import type { Offer, OfferStatus, OfferDetails } from "../types";
 import { supabase, hasSupabaseConfig } from "./supabase";
 
 /**
@@ -73,6 +73,7 @@ interface OfferRow {
   created_at: number;
   status?: string | null;
   interested_by?: string[] | null;
+  details?: OfferDetails | null;
 }
 
 function toRow(o: Offer): OfferRow {
@@ -93,6 +94,7 @@ function toRow(o: Offer): OfferRow {
     created_at: o.createdAt,
     status: o.status ?? null,
     interested_by: o.interestedBy ?? null,
+    details: o.details ?? null,
   };
 }
 
@@ -101,13 +103,14 @@ function withoutOptionalColumns(row: OfferRow): OfferRow {
   const clone = { ...row };
   delete clone.status;
   delete clone.interested_by;
+  delete clone.details;
   return clone;
 }
 
 /** Vrai si l'erreur Supabase vient d'une colonne optionnelle absente. */
 function missingOptionalColumn(error: { code?: string; message?: string } | null): boolean {
   if (!error) return false;
-  return error.code === "PGRST204" || /status|interested/i.test(error.message ?? "");
+  return error.code === "PGRST204" || /status|interested|details/i.test(error.message ?? "");
 }
 
 function fromRow(r: OfferRow): Offer {
@@ -128,6 +131,7 @@ function fromRow(r: OfferRow): Offer {
     createdAt: r.created_at,
     status: (r.status as OfferStatus) ?? undefined,
     interestedBy: r.interested_by ?? undefined,
+    details: r.details ?? undefined,
   };
 }
 

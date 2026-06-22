@@ -34,6 +34,8 @@ interface Props {
   onSelect: (offer: Offer) => void;
   /** Bascule l'intérêt de « moi » pour une offre (handshake). */
   onToggleInterest: (offer: Offer) => void;
+  /** Ouvre la modale de notes structurées d'une offre. */
+  onOpenNotes: (offer: Offer) => void;
   onBackgroundClick: () => void;
   onPinpoint: (lat: number, lng: number) => void;
   pinpointMode: boolean;
@@ -69,6 +71,7 @@ export function MapView({
   me,
   onSelect,
   onToggleInterest,
+  onOpenNotes,
   onBackgroundClick,
   onPinpoint,
   pinpointMode,
@@ -179,6 +182,9 @@ export function MapView({
                   onClick={() => onToggleInterest(o)}
                 >
                   {iAmIn ? "✓ Tu es partant" : "👍 Ça m'intéresse"}
+                </button>
+                <button className="interest-btn" onClick={() => onOpenNotes(o)}>
+                  📝 Notes
                 </button>
                 {isMatch && <span className="match-badge">🤝 Match</span>}
               </div>
