@@ -40,6 +40,7 @@ export interface OfferDetails {
 export type OfferStatus =
   | "new"
   | "to_call"
+  | "pending"
   | "to_visit"
   | "visited"
   | "favorite"
