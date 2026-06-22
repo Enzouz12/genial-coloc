@@ -17,12 +17,23 @@ export interface OfferLink {
   url: string;
 }
 
-/** Notes structurées d'une annonce (contacts, liens, visite). */
+/** Un média (image ou vidéo) attaché à une annonce. Stocké dans un bucket
+ *  privé Supabase ; seul le chemin est conservé (URL signée à la demande). */
+export interface OfferMedia {
+  id: string;
+  /** Chemin du fichier dans le bucket. */
+  path: string;
+  type: "image" | "video";
+  name?: string;
+}
+
+/** Notes structurées d'une annonce (contacts, liens, visite, médias). */
 export interface OfferDetails {
   /** Date/heure de visite, texte libre (ex. « mar. 1 juil. · 18h30 »). */
   visitDate?: string;
   contacts?: OfferContact[];
   links?: OfferLink[];
+  media?: OfferMedia[];
 }
 
 /** Statut de suivi d'une offre pendant la recherche. */
