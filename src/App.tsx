@@ -150,6 +150,10 @@ export default function App() {
   // sans bascule d'onglet/sélection), puis ferme la modale.
   async function handleSaveNotes(updated: Offer) {
     setOffers((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
+    // Garde le formulaire d'édition en phase si c'est la même offre (sinon un
+    // « Enregistrer » du formulaire réécraserait les notes/details fraîchement
+    // modifiés via la modale).
+    setEditing((e) => (e && e.id === updated.id ? updated : e));
     setNotesOffer(null);
     try {
       await store.update(updated);
@@ -223,6 +227,7 @@ export default function App() {
             pinpointMode={pinpointMode}
             onTogglePinpoint={() => setPinpointMode((v) => !v)}
             pinnedLocation={pinned}
+            onOpenNotes={setNotesOffer}
           />
         </div>
 

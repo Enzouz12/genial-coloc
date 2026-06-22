@@ -14,6 +14,8 @@ interface Props {
   onTogglePinpoint: () => void;
   /** Adresse renvoyée par un pointage sur la carte (clé pour retrigger). */
   pinnedLocation: { label: string; key: number } | null;
+  /** Ouvre la modale de notes structurées (en édition). */
+  onOpenNotes: (offer: Offer) => void;
 }
 
 /** Titre court au format "T2 // Rue d'Amboise 69002 Lyon". */
@@ -29,6 +31,7 @@ export function AddOfferForm({
   pinpointMode,
   onTogglePinpoint,
   pinnedLocation,
+  onOpenNotes,
 }: Props) {
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
@@ -155,13 +158,19 @@ export function AddOfferForm({
         bikeMin: times.bikeMin,
         addedBy,
         status,
-        notes: notes.trim() || undefined,
       };
 
       if (editing) {
+        // En édition, notes et details sont gérés par la modale → on préserve
+        // ceux de l'offre (ne pas écraser avec un champ du formulaire).
         await onUpdate({ ...editing, ...base });
       } else {
-        await onAdd({ id: crypto.randomUUID(), ...base, createdAt: Date.now() });
+        await onAdd({
+          id: crypto.randomUUID(),
+          ...base,
+          notes: notes.trim() || undefined,
+          createdAt: Date.now(),
+        });
       }
       resetForm();
       if (times.transitMin == null && times.bikeMin == null) {
@@ -248,10 +257,16 @@ export function AddOfferForm({
         </label>
       </div>
 
-      <label>
-        Notes
-        <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Meublé, dispo sept., 3e étage…" />
-      </label>
+      {editing ? (
+        <button type="button" className="btn-ghost" onClick={() => onOpenNotes(editing)}>
+          📝 Modifier les notes (contacts, liens, médias…)
+        </button>
+      ) : (
+        <label>
+          Notes
+          <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Meublé, dispo sept., 3e étage…" />
+        </label>
+      )}
 
       {error && <p className="error">{error}</p>}
       {notice && <p className="notice">{notice}</p>}
