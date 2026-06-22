@@ -39,3 +39,19 @@ create policy "acces partage" on public.offers
 
 -- Active la diffusion temps réel des changements sur la table.
 alter publication supabase_realtime add table public.offers;
+
+-- ----------------------------------------------------------------------------
+-- Stockage des médias d'annonces (images/vidéos des notes structurées).
+-- Bucket PRIVÉ : l'app affiche via des URLs signées temporaires. À exécuter
+-- une fois dans le SQL Editor pour activer la fonctionnalité.
+-- ----------------------------------------------------------------------------
+-- insert into storage.buckets (id, name, public, file_size_limit)
+-- values ('offer-media', 'offer-media', false, 52428800)
+-- on conflict (id) do nothing;
+--
+-- create policy "offer-media anon select" on storage.objects
+--   for select to anon using (bucket_id = 'offer-media');
+-- create policy "offer-media anon insert" on storage.objects
+--   for insert to anon with check (bucket_id = 'offer-media');
+-- create policy "offer-media anon delete" on storage.objects
+--   for delete to anon using (bucket_id = 'offer-media');
