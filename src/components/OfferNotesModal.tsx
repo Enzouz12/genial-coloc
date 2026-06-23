@@ -19,6 +19,9 @@ interface Props {
 
 const newId = () => crypto.randomUUID();
 
+/** Élément d'affichage : un média seul, ou un groupe (vidéo découpée). */
+type DisplayItem = OfferMedia | { group: string; parts: OfferMedia[] };
+
 /** Modale d'édition des notes structurées d'une annonce. */
 export function OfferNotesModal({ offer, onClose, onSave }: Props) {
   const [visitDate, setVisitDate] = useState(offer.details?.visitDate ?? "");
@@ -32,6 +35,8 @@ export function OfferNotesModal({ offer, onClose, onSave }: Props) {
   // Message d'avancement du traitement vidéo (compression/découpe/envoi).
   const [procStatus, setProcStatus] = useState("");
   const [mediaError, setMediaError] = useState<string | null>(null);
+  // Index de l'élément ouvert en grand dans la visionneuse, sinon null.
+  const [lightbox, setLightbox] = useState<number | null>(null);
   // Fichiers téléversés pendant cette session (à nettoyer si on annule).
   const sessionPaths = useRef<Set<string>>(new Set());
   const originalPaths = useRef<string[]>((offer.details?.media ?? []).map((m) => m.path));
@@ -50,9 +55,12 @@ export function OfferNotesModal({ offer, onClose, onSave }: Props) {
     };
   }, [media, mediaUrls]);
 
-  // Échap ferme la modale (avec nettoyage des médias non enregistrés).
+  // Échap ferme la modale (sauf si la visionneuse est ouverte : elle gère
+  // alors son propre Échap). Nettoie les médias non enregistrés.
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && handleClose();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && lightbox === null) handleClose();
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   });
@@ -169,7 +177,7 @@ export function OfferNotesModal({ offer, onClose, onSave }: Props) {
   const status = STATUSES.find((s) => s.id === (offer.status ?? "new"));
 
   // Regroupe les parties d'une même vidéo découpée pour l'affichage.
-  const displayItems: (OfferMedia | { group: string; parts: OfferMedia[] })[] = [];
+  const displayItems: DisplayItem[] = [];
   const seenGroups = new Set<string>();
   for (const m of media) {
     if (m.groupId) {
@@ -187,6 +195,7 @@ export function OfferNotesModal({ offer, onClose, onSave }: Props) {
   }
 
   return (
+    <>
     <div className="modal-backdrop" onClick={handleClose}>
       <div
         className="modal-card notes-modal"
@@ -334,25 +343,53 @@ export function OfferNotesModal({ offer, onClose, onSave }: Props) {
             )}
             {(media.length > 0 || uploading) && (
               <div className="media-grid">
-                {displayItems.map((it) =>
-                  "group" in it ? (
-                    <MediaGroupTile
-                      key={it.group}
-                      parts={it.parts}
-                      urls={mediaUrls}
-                      onRemove={() => removeGroup(it.group)}
-                    />
-                  ) : (
-                    <div key={it.id} className="media-thumb">
-                      {mediaUrls[it.path] ? (
-                        it.type === "video" ? (
-                          <video src={mediaUrls[it.path]} controls />
+                {displayItems.map((it, i) => {
+                  if ("group" in it) {
+                    const url = it.parts[0] ? mediaUrls[it.parts[0].path] : undefined;
+                    return (
+                      <div
+                        key={it.group}
+                        className="media-thumb media-clickable"
+                        onClick={() => setLightbox(i)}
+                      >
+                        {url ? (
+                          <>
+                            <video src={url} muted preload="metadata" />
+                            <span className="media-play">▶</span>
+                          </>
                         ) : (
-                          <img
-                            src={mediaUrls[it.path]}
-                            alt={it.name ?? ""}
-                            onClick={() => window.open(mediaUrls[it.path], "_blank")}
-                          />
+                          <span className="media-loading">…</span>
+                        )}
+                        <span className="media-part">{it.parts.length} parties</span>
+                        <button
+                          type="button"
+                          className="media-remove"
+                          aria-label="Retirer la vidéo"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeGroup(it.group);
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    );
+                  }
+                  const url = mediaUrls[it.path];
+                  return (
+                    <div
+                      key={it.id}
+                      className="media-thumb media-clickable"
+                      onClick={() => setLightbox(i)}
+                    >
+                      {url ? (
+                        it.type === "video" ? (
+                          <>
+                            <video src={url} muted preload="metadata" />
+                            <span className="media-play">▶</span>
+                          </>
+                        ) : (
+                          <img src={url} alt={it.name ?? ""} />
                         )
                       ) : (
                         <span className="media-loading">…</span>
@@ -361,13 +398,16 @@ export function OfferNotesModal({ offer, onClose, onSave }: Props) {
                         type="button"
                         className="media-remove"
                         aria-label="Retirer le média"
-                        onClick={() => removeMedia(it.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeMedia(it.id);
+                        }}
                       >
                         ×
                       </button>
                     </div>
-                  )
-                )}
+                  );
+                })}
                 {uploading && <span className="media-thumb media-loading">…</span>}
               </div>
             )}
@@ -394,40 +434,135 @@ export function OfferNotesModal({ offer, onClose, onSave }: Props) {
         </footer>
       </div>
     </div>
+    {lightbox !== null && displayItems[lightbox] && (
+      <MediaLightbox
+        items={displayItems}
+        index={lightbox}
+        urls={mediaUrls}
+        onClose={() => setLightbox(null)}
+        onNav={(d) =>
+          setLightbox((i) =>
+            i === null ? null : Math.max(0, Math.min(displayItems.length - 1, i + d))
+          )
+        }
+      />
+    )}
+    </>
   );
 }
 
-/** Tuile d'une vidéo découpée : lecture séquentielle des parties. */
-function MediaGroupTile({
+/** Lecture séquentielle des parties d'une vidéo découpée. */
+function SequentialVideo({
   parts,
   urls,
-  onRemove,
 }: {
   parts: OfferMedia[];
   urls: Record<string, string>;
-  onRemove: () => void;
 }) {
   const [idx, setIdx] = useState(0);
   const total = parts.length;
   const current = parts[Math.min(idx, total - 1)];
   const url = current ? urls[current.path] : undefined;
   return (
-    <div className="media-thumb">
+    <div className="seqvideo">
       {url ? (
         <video
           key={current.path}
           src={url}
           controls
-          autoPlay={idx > 0}
+          autoPlay
           onEnded={() => setIdx((i) => (i + 1 < total ? i + 1 : i))}
         />
       ) : (
         <span className="media-loading">…</span>
       )}
       <span className="media-part">Partie {Math.min(idx, total - 1) + 1}/{total}</span>
-      <button type="button" className="media-remove" aria-label="Retirer la vidéo" onClick={onRemove}>
+    </div>
+  );
+}
+
+/** Visionneuse plein écran avec navigation média précédent/suivant. */
+function MediaLightbox({
+  items,
+  index,
+  urls,
+  onClose,
+  onNav,
+}: {
+  items: DisplayItem[];
+  index: number;
+  urls: Record<string, string>;
+  onClose: () => void;
+  onNav: (delta: number) => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      else if (e.key === "ArrowLeft") onNav(-1);
+      else if (e.key === "ArrowRight") onNav(1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
+  const touchX = useRef<number | null>(null);
+  const it = items[index];
+
+  return (
+    <div
+      className="lightbox"
+      onClick={onClose}
+      onTouchStart={(e) => {
+        touchX.current = e.touches[0].clientX;
+      }}
+      onTouchEnd={(e) => {
+        if (touchX.current == null) return;
+        const dx = e.changedTouches[0].clientX - touchX.current;
+        if (Math.abs(dx) > 50) onNav(dx < 0 ? 1 : -1);
+        touchX.current = null;
+      }}
+    >
+      <button className="lightbox-close" aria-label="Fermer" onClick={onClose}>
         ×
       </button>
+      {index > 0 && (
+        <button
+          className="lightbox-nav prev"
+          aria-label="Précédent"
+          onClick={(e) => {
+            e.stopPropagation();
+            onNav(-1);
+          }}
+        >
+          ‹
+        </button>
+      )}
+      {index < items.length - 1 && (
+        <button
+          className="lightbox-nav next"
+          aria-label="Suivant"
+          onClick={(e) => {
+            e.stopPropagation();
+            onNav(1);
+          }}
+        >
+          ›
+        </button>
+      )}
+      <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+        {"group" in it ? (
+          <SequentialVideo parts={it.parts} urls={urls} />
+        ) : !urls[it.path] ? (
+          <span className="media-loading">…</span>
+        ) : it.type === "video" ? (
+          <video src={urls[it.path]} controls autoPlay />
+        ) : (
+          <img src={urls[it.path]} alt={it.name ?? ""} />
+        )}
+      </div>
+      <div className="lightbox-counter">
+        {index + 1} / {items.length}
+      </div>
     </div>
   );
 }
