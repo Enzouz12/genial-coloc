@@ -1,7 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import type { Offer, OfferContact, OfferLink, OfferDetails, OfferMedia } from "../types";
 import { STATUSES, statusColor } from "../config";
-import { uploadMedia, signedUrl, deleteMedia, mediaAvailable } from "../lib/media";
+import {
+  uploadMedia,
+  uploadBlob,
+  signedUrl,
+  deleteMedia,
+  mediaAvailable,
+  MEDIA_FILE_LIMIT,
+} from "../lib/media";
+import { compressVideo, splitIfNeeded } from "../lib/video";
 
 interface Props {
   offer: Offer;
@@ -21,6 +29,8 @@ export function OfferNotesModal({ offer, onClose, onSave }: Props) {
   // URLs signées résolues pour l'affichage (path -> url temporaire).
   const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
   const [uploading, setUploading] = useState(false);
+  // Message d'avancement du traitement vidéo (compression/découpe/envoi).
+  const [procStatus, setProcStatus] = useState("");
   const [mediaError, setMediaError] = useState<string | null>(null);
   // Fichiers téléversés pendant cette session (à nettoyer si on annule).
   const sessionPaths = useRef<Set<string>>(new Set());
@@ -60,16 +70,45 @@ export function OfferNotesModal({ offer, onClose, onSave }: Props) {
     setUploading(true);
     try {
       for (const file of Array.from(files)) {
-        const m = await uploadMedia(offer.id, file);
-        sessionPaths.current.add(m.path);
-        setMedia((prev) => [...prev, m]);
+        if (file.type.startsWith("video")) {
+          await addVideo(file);
+        } else {
+          setProcStatus("Envoi…");
+          const m = await uploadMedia(offer.id, file);
+          sessionPaths.current.add(m.path);
+          setMedia((prev) => [...prev, m]);
+        }
       }
-    } catch {
+    } catch (e) {
       setMediaError(
-        "Échec du téléversement. Vérifie que le bucket « offer-media » existe (voir la doc)."
+        e instanceof Error && e.message
+          ? e.message
+          : "Échec du traitement. Vérifie que le bucket « offer-media » existe."
       );
     } finally {
       setUploading(false);
+      setProcStatus("");
+    }
+  }
+
+  // Compresse une vidéo (720p), la découpe si elle dépasse encore la limite,
+  // puis téléverse la/les partie(s) (groupées si plusieurs).
+  async function addVideo(file: File) {
+    setProcStatus("Compression… 0 %");
+    const compressed = await compressVideo(file, (p) => setProcStatus(`Compression… ${p} %`));
+    setProcStatus("Découpe…");
+    const blobs = await splitIfNeeded(compressed, MEDIA_FILE_LIMIT);
+    const groupId = blobs.length > 1 ? newId() : undefined;
+    for (let i = 0; i < blobs.length; i++) {
+      setProcStatus(blobs.length > 1 ? `Envoi partie ${i + 1}/${blobs.length}…` : "Envoi…");
+      const m = await uploadBlob(offer.id, blobs[i], "video", file.name);
+      if (groupId) {
+        m.groupId = groupId;
+        m.part = i + 1;
+        m.parts = blobs.length;
+      }
+      sessionPaths.current.add(m.path);
+      setMedia((prev) => [...prev, m]);
     }
   }
 
@@ -77,6 +116,11 @@ export function OfferNotesModal({ offer, onClose, onSave }: Props) {
     // Retrait du brouillon uniquement ; la suppression du fichier se fait à
     // l'enregistrement (pour rester cohérent si on annule).
     setMedia((ms) => ms.filter((m) => m.id !== id));
+  }
+
+  // Retire toutes les parties d'une vidéo découpée.
+  function removeGroup(groupId: string) {
+    setMedia((ms) => ms.filter((m) => m.groupId !== groupId));
   }
 
   // Ferme sans enregistrer : nettoie les fichiers téléversés cette session.
@@ -123,6 +167,24 @@ export function OfferNotesModal({ offer, onClose, onSave }: Props) {
   }
 
   const status = STATUSES.find((s) => s.id === (offer.status ?? "new"));
+
+  // Regroupe les parties d'une même vidéo découpée pour l'affichage.
+  const displayItems: (OfferMedia | { group: string; parts: OfferMedia[] })[] = [];
+  const seenGroups = new Set<string>();
+  for (const m of media) {
+    if (m.groupId) {
+      if (seenGroups.has(m.groupId)) continue;
+      seenGroups.add(m.groupId);
+      displayItems.push({
+        group: m.groupId,
+        parts: media
+          .filter((x) => x.groupId === m.groupId)
+          .sort((a, b) => (a.part ?? 0) - (b.part ?? 0)),
+      });
+    } else {
+      displayItems.push(m);
+    }
+  }
 
   return (
     <div className="modal-backdrop" onClick={handleClose}>
@@ -265,37 +327,47 @@ export function OfferNotesModal({ offer, onClose, onSave }: Props) {
               </label>
             </div>
             {!mediaAvailable && <p className="notes-empty">Stockage indisponible (mode local).</p>}
+            {procStatus && <p className="notes-empty">{procStatus}</p>}
             {mediaError && <p className="error">{mediaError}</p>}
             {media.length === 0 && mediaAvailable && !uploading && (
               <p className="notes-empty">Aucun média.</p>
             )}
             {(media.length > 0 || uploading) && (
               <div className="media-grid">
-                {media.map((m) => (
-                  <div key={m.id} className="media-thumb">
-                    {mediaUrls[m.path] ? (
-                      m.type === "video" ? (
-                        <video src={mediaUrls[m.path]} controls />
+                {displayItems.map((it) =>
+                  "group" in it ? (
+                    <MediaGroupTile
+                      key={it.group}
+                      parts={it.parts}
+                      urls={mediaUrls}
+                      onRemove={() => removeGroup(it.group)}
+                    />
+                  ) : (
+                    <div key={it.id} className="media-thumb">
+                      {mediaUrls[it.path] ? (
+                        it.type === "video" ? (
+                          <video src={mediaUrls[it.path]} controls />
+                        ) : (
+                          <img
+                            src={mediaUrls[it.path]}
+                            alt={it.name ?? ""}
+                            onClick={() => window.open(mediaUrls[it.path], "_blank")}
+                          />
+                        )
                       ) : (
-                        <img
-                          src={mediaUrls[m.path]}
-                          alt={m.name ?? ""}
-                          onClick={() => window.open(mediaUrls[m.path], "_blank")}
-                        />
-                      )
-                    ) : (
-                      <span className="media-loading">…</span>
-                    )}
-                    <button
-                      type="button"
-                      className="media-remove"
-                      aria-label="Retirer le média"
-                      onClick={() => removeMedia(m.id)}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
+                        <span className="media-loading">…</span>
+                      )}
+                      <button
+                        type="button"
+                        className="media-remove"
+                        aria-label="Retirer le média"
+                        onClick={() => removeMedia(it.id)}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )
+                )}
                 {uploading && <span className="media-thumb media-loading">…</span>}
               </div>
             )}
@@ -321,6 +393,41 @@ export function OfferNotesModal({ offer, onClose, onSave }: Props) {
           </button>
         </footer>
       </div>
+    </div>
+  );
+}
+
+/** Tuile d'une vidéo découpée : lecture séquentielle des parties. */
+function MediaGroupTile({
+  parts,
+  urls,
+  onRemove,
+}: {
+  parts: OfferMedia[];
+  urls: Record<string, string>;
+  onRemove: () => void;
+}) {
+  const [idx, setIdx] = useState(0);
+  const total = parts.length;
+  const current = parts[Math.min(idx, total - 1)];
+  const url = current ? urls[current.path] : undefined;
+  return (
+    <div className="media-thumb">
+      {url ? (
+        <video
+          key={current.path}
+          src={url}
+          controls
+          autoPlay={idx > 0}
+          onEnded={() => setIdx((i) => (i + 1 < total ? i + 1 : i))}
+        />
+      ) : (
+        <span className="media-loading">…</span>
+      )}
+      <span className="media-part">Partie {Math.min(idx, total - 1) + 1}/{total}</span>
+      <button type="button" className="media-remove" aria-label="Retirer la vidéo" onClick={onRemove}>
+        ×
+      </button>
     </div>
   );
 }

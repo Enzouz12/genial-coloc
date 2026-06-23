@@ -25,6 +25,12 @@ export interface OfferMedia {
   path: string;
   type: "image" | "video";
   name?: string;
+  /** Pour une vidéo découpée : même valeur sur toutes les parties. */
+  groupId?: string;
+  /** Index 1-based de la partie. */
+  part?: number;
+  /** Nombre total de parties du groupe. */
+  parts?: number;
 }
 
 /** Notes structurées d'une annonce (contacts, liens, visite, médias). */

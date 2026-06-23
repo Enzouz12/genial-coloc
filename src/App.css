@@ -474,6 +474,17 @@ body {
   cursor: pointer;
 }
 .media-remove:hover { background: var(--danger); }
+.media-part {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  background: rgba(15, 17, 21, 0.78);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 5px;
+  padding: 1px 6px;
+}
 .contact-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
