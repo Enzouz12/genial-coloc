@@ -46,8 +46,10 @@ alter publication supabase_realtime add table public.offers;
 -- une fois dans le SQL Editor pour activer la fonctionnalité.
 -- ----------------------------------------------------------------------------
 -- insert into storage.buckets (id, name, public, file_size_limit)
--- values ('offer-media', 'offer-media', false, 52428800)
+-- values ('offer-media', 'offer-media', false, 157286400)  -- 150 Mo
 -- on conflict (id) do nothing;
+-- (bucket déjà créé : relever la limite à 150 Mo pour les vidéos compressées)
+-- update storage.buckets set file_size_limit = 157286400 where id = 'offer-media';
 --
 -- create policy "offer-media anon select" on storage.objects
 --   for select to anon using (bucket_id = 'offer-media');
