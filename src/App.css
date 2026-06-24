@@ -470,41 +470,88 @@ body {
   text-align: center;
   padding: 36px 22px;
 }
-.offer-page-head { display: flex; flex-direction: column; gap: 8px; }
-.offer-page-head h1 { margin: 0; font-size: 21px; color: var(--text); }
-.offer-page-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+.offer-page-inner { max-width: 1040px; margin: 0 auto; padding: 22px 18px 56px; }
+
+/* En-tête : titre + métriques clés */
+.offer-hero { margin-bottom: 16px; }
+.offer-hero h1 { margin: 0 0 3px; font-size: 23px; color: var(--text); }
+.offer-hero-loc { margin: 0 0 14px; font-size: 13px; color: var(--muted); }
+.metric-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
   gap: 10px;
-  font-size: 13px;
-  color: var(--muted);
 }
-.offer-page-meta .price { color: var(--text); font-weight: 700; font-size: 15px; }
-.offer-page-meta a { color: var(--accent); text-decoration: none; }
-.offer-page-controls {
+.metric {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.metric-l { font-size: 11px; color: var(--muted); }
+.metric-v { font-size: 18px; font-weight: 700; color: var(--text); }
+
+/* Barre de décision : statut + handshake + note + lien */
+.decision-bar {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   flex-wrap: wrap;
-  padding: 12px 0;
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
 }
-.offer-page-controls .handshake { margin-top: 0; }
-.detail-sections { display: flex; flex-direction: column; gap: 14px; }
-.detail-actions { display: flex; justify-content: flex-end; padding-top: 4px; }
+.decision-bar .handshake { margin-top: 0; }
+.decision-end {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.decision-end a { color: var(--accent); text-decoration: none; font-size: 13px; }
+
+/* Corps en deux colonnes : principal (médias/notes) + latéral (infos) */
+.detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+.detail-col-main { grid-column: 1; }
+.detail-col-side { grid-column: 2; }
+.detail-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+@media (max-width: 820px) {
+  .detail-grid { grid-template-columns: 1fr; }
+  .detail-col-main, .detail-col-side { grid-column: 1; }
+}
+.detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
 .detail-actions button {
   background: var(--accent);
   color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 9px 22px;
+  padding: 10px 26px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
 }
-.notes-section { display: flex; flex-direction: column; gap: 6px; }
+.notes-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 13px 15px;
+}
 .notes-section-head {
   display: flex;
   align-items: center;

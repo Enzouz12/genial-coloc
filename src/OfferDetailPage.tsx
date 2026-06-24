@@ -3,8 +3,16 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import type { Offer, OfferStatus } from "./types";
 import { store } from "./lib/storage";
 import { getMe, setMe as persistMe } from "./lib/identity";
-import { STATUSES, statusColor, ROOMMATES, applyInterest } from "./config";
-import { distanceToCampusKm, commuteBucket } from "./lib/geo";
+import {
+  STATUSES,
+  statusColor,
+  ROOMMATES,
+  applyInterest,
+  averageScore,
+  formatScore,
+  scoreColor,
+} from "./config";
+import { distanceToCampusKm } from "./lib/geo";
 import { OfferDetailEditor } from "./components/OfferDetailEditor";
 
 /** Page dédiée d'une annonce : en-tête (statut, handshake) + éditeur de notes. */
@@ -74,7 +82,8 @@ export function OfferDetailPage() {
   }
 
   const dist = distanceToCampusKm(offer);
-  const commute = commuteBucket(offer);
+  const pricePerM2 = offer.surface ? Math.round(offer.price / offer.surface) : null;
+  const avg = averageScore(offer.details?.reviews);
   const interested = offer.interestedBy ?? [];
   const iAmIn = interested.includes(me);
   const isMatch = ROOMMATES.every((r) => interested.includes(r));
@@ -94,28 +103,50 @@ export function OfferDetailPage() {
         </label>
       </header>
 
-      <div className="offer-card">
-      <header className="offer-page-head">
-        <h1>{offer.title}</h1>
-        <div className="offer-page-meta">
-          <span className="price">{offer.price} €</span>
-          {offer.surface ? <span>{offer.surface} m²</span> : null}
-          {offer.rooms ? <span>T{offer.rooms}</span> : null}
-          <span>{dist.toFixed(1)} km</span>
-          <span className="badge">{commute.label}</span>
-          {(offer.transitMin != null || offer.bikeMin != null) && (
-            <span className="muted">
-              {offer.transitMin != null ? `TCL ${offer.transitMin} min` : ""}
-              {offer.transitMin != null && offer.bikeMin != null ? " · " : ""}
-              {offer.bikeMin != null ? `Vélo ${offer.bikeMin} min` : ""}
-            </span>
-          )}
-          {offer.url && (
-            <a href={offer.url} target="_blank" rel="noreferrer">Annonce ↗</a>
-          )}
-        </div>
+      <div className="offer-page-inner">
+        <header className="offer-hero">
+          <h1>{offer.title}</h1>
+          <p className="offer-hero-loc">
+            {offer.location}
+            {offer.addedBy ? ` · ajouté par ${offer.addedBy}` : ""}
+          </p>
+          <div className="metric-row">
+            <div className="metric">
+              <span className="metric-l">Loyer</span>
+              <span className="metric-v">{offer.price} €</span>
+            </div>
+            {offer.surface ? (
+              <div className="metric">
+                <span className="metric-l">Surface</span>
+                <span className="metric-v">{offer.surface} m²{offer.rooms ? ` · T${offer.rooms}` : ""}</span>
+              </div>
+            ) : null}
+            {pricePerM2 !== null ? (
+              <div className="metric">
+                <span className="metric-l">Prix au m²</span>
+                <span className="metric-v">{pricePerM2} €</span>
+              </div>
+            ) : null}
+            <div className="metric">
+              <span className="metric-l">Campus</span>
+              <span className="metric-v">{dist.toFixed(1)} km</span>
+            </div>
+            {offer.transitMin != null ? (
+              <div className="metric">
+                <span className="metric-l">Trajet TCL</span>
+                <span className="metric-v">{offer.transitMin} min</span>
+              </div>
+            ) : null}
+            {offer.bikeMin != null ? (
+              <div className="metric">
+                <span className="metric-l">Vélo</span>
+                <span className="metric-v">{offer.bikeMin} min</span>
+              </div>
+            ) : null}
+          </div>
+        </header>
 
-        <div className="offer-page-controls">
+        <div className="decision-bar">
           <select
             className="status-select"
             value={offer.status ?? "new"}
@@ -143,10 +174,20 @@ export function OfferDetailPage() {
             </span>
             {isMatch && <span className="match-badge">🤝 Match</span>}
           </div>
-        </div>
-      </header>
 
-      <OfferDetailEditor key={`${offer.id}-${me}`} offer={offer} me={me} onSave={handleSaveDetails} />
+          <div className="decision-end">
+            {avg !== null && (
+              <span className="review-badge" style={{ background: scoreColor(avg) }}>
+                ★ {formatScore(avg)}/10
+              </span>
+            )}
+            {offer.url && (
+              <a href={offer.url} target="_blank" rel="noreferrer">Voir l'annonce ↗</a>
+            )}
+          </div>
+        </div>
+
+        <OfferDetailEditor key={`${offer.id}-${me}`} offer={offer} me={me} onSave={handleSaveDetails} />
       </div>
     </div>
   );

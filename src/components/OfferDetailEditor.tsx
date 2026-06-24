@@ -213,16 +213,8 @@ export function OfferDetailEditor({ offer, me, onSave }: Props) {
 
   return (
     <>
-      <div className="detail-sections">
-        <label className="field">
-          Date de visite
-          <input
-            value={visitDate}
-            onChange={(e) => setVisitDate(e.target.value)}
-            placeholder="mar. 1 juil. · 18h30"
-          />
-        </label>
-
+      <div className="detail-grid">
+        <div className="detail-col detail-col-side">
         <section className="notes-section">
           <div className="notes-section-head">
             <span>Avis</span>
@@ -292,6 +284,17 @@ export function OfferDetailEditor({ offer, me, onSave }: Props) {
           {myScore === null && otherReviews.length === 0 && (
             <p className="notes-empty">Aucun avis pour l'instant.</p>
           )}
+        </section>
+
+        <section className="notes-section">
+          <div className="notes-section-head">
+            <span>Visite</span>
+          </div>
+          <input
+            value={visitDate}
+            onChange={(e) => setVisitDate(e.target.value)}
+            placeholder="mar. 1 juil. · 18h30"
+          />
         </section>
 
         <section className="notes-section">
@@ -380,7 +383,9 @@ export function OfferDetailEditor({ offer, me, onSave }: Props) {
             </div>
           ))}
         </section>
+        </div>
 
+        <div className="detail-col detail-col-main">
         <section className="notes-section">
           <div className="notes-section-head">
             <span>Photos / vidéos</span>
@@ -477,21 +482,24 @@ export function OfferDetailEditor({ offer, me, onSave }: Props) {
           )}
         </section>
 
-        <label className="field">
-          Notes libres
+        <section className="notes-section">
+          <div className="notes-section-head">
+            <span>Notes</span>
+          </div>
           <textarea
-            rows={4}
+            rows={5}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Tout le reste en vrac…"
           />
-        </label>
-
-        <div className="detail-actions">
-          <button type="button" onClick={handleSave}>
-            Enregistrer
-          </button>
+        </section>
         </div>
+      </div>
+
+      <div className="detail-actions">
+        <button type="button" onClick={handleSave}>
+          Enregistrer
+        </button>
       </div>
 
       {lightbox !== null && displayItems[lightbox] && (
