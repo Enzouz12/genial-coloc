@@ -567,6 +567,13 @@ body {
 }
 .review-clear:hover { color: var(--danger); }
 .review-range { width: 100%; accent-color: #22c55e; }
+.review-comment-input {
+  width: 100%;
+  resize: vertical;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
 .review-badge {
   color: #0f1115;
   font-weight: 700;

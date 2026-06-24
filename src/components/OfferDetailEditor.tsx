@@ -279,7 +279,9 @@ export function OfferDetailEditor({ offer, me, onSave }: Props) {
                 onChange={(e) => setMyScore(Number(e.target.value))}
                 className="review-range"
               />
-              <input
+              <textarea
+                className="review-comment-input"
+                rows={2}
                 value={myComment}
                 onChange={(e) => setMyComment(e.target.value)}
                 placeholder="Commentaire (optionnel)"
