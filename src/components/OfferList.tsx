@@ -1,5 +1,5 @@
 import type { Offer, OfferStatus } from "../types";
-import { ROOMMATES, STATUSES, statusColor } from "../config";
+import { ROOMMATES, STATUSES, statusColor, averageScore, formatScore } from "../config";
 import { priceColor } from "../lib/color";
 import { distanceToCampusKm, commuteBucket } from "../lib/geo";
 
@@ -58,7 +58,8 @@ export function OfferList({
         const d = o.details;
         const nbContacts = d?.contacts?.length ?? 0;
         const nbLinks = d?.links?.length ?? 0;
-        const hasDetails = !!(d?.visitDate || nbContacts || nbLinks);
+        const avg = averageScore(d?.reviews);
+        const hasDetails = !!(d?.visitDate || nbContacts || nbLinks || avg !== null);
         return (
           <li
             key={o.id}
@@ -93,6 +94,7 @@ export function OfferList({
               {o.notes && <div className="offer-notes">{o.notes}</div>}
               {hasDetails && (
                 <div className="offer-details-summary">
+                  {avg !== null && <span className="review-badge">★ {formatScore(avg)}/10</span>}
                   {d?.visitDate && <span>📅 {d.visitDate}</span>}
                   {nbContacts > 0 && <span>👤 {nbContacts}</span>}
                   {nbLinks > 0 && <span>🔗 {nbLinks}</span>}

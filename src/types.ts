@@ -33,13 +33,23 @@ export interface OfferMedia {
   parts?: number;
 }
 
-/** Notes structurées d'une annonce (contacts, liens, visite, médias). */
+/** Avis nominatif d'un colocataire sur une annonce (un seul par auteur). */
+export interface OfferReview {
+  author: string;
+  /** Note de 0 à 10. */
+  score: number;
+  comment?: string;
+  updatedAt: number;
+}
+
+/** Notes structurées d'une annonce (contacts, liens, visite, médias, avis). */
 export interface OfferDetails {
   /** Date/heure de visite, texte libre (ex. « mar. 1 juil. · 18h30 »). */
   visitDate?: string;
   contacts?: OfferContact[];
   links?: OfferLink[];
   media?: OfferMedia[];
+  reviews?: OfferReview[];
 }
 
 /** Statut de suivi d'une offre pendant la recherche. */

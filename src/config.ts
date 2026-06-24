@@ -1,5 +1,5 @@
 // Constantes métier de Génial Coloc.
-import type { OfferStatus } from "./types";
+import type { OfferStatus, OfferReview } from "./types";
 
 /** Point de référence : Université Lyon 2 — Campus Porte des Alpes (Bron). */
 export const CAMPUS = {
@@ -64,4 +64,15 @@ export const STATUSES: { id: OfferStatus; label: string; color: string }[] = [
 /** Couleur d'un statut (gris par défaut). */
 export function statusColor(status: OfferStatus | undefined): string {
   return STATUSES.find((s) => s.id === (status ?? "new"))?.color ?? "#9aa0aa";
+}
+
+/** Moyenne des notes d'avis (0-10), ou null si aucun avis. */
+export function averageScore(reviews: OfferReview[] | undefined): number | null {
+  if (!reviews || reviews.length === 0) return null;
+  return reviews.reduce((sum, r) => sum + r.score, 0) / reviews.length;
+}
+
+/** Formate une note (1 décimale max, virgule française, sans « ,0 »). */
+export function formatScore(n: number): string {
+  return (Math.round(n * 10) / 10).toString().replace(".", ",");
 }

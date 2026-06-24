@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import type { Offer, OfferContact, OfferLink, OfferDetails, OfferMedia } from "../types";
-import { STATUSES, statusColor } from "../config";
+import type {
+  Offer,
+  OfferContact,
+  OfferLink,
+  OfferDetails,
+  OfferMedia,
+  OfferReview,
+} from "../types";
+import { STATUSES, statusColor, averageScore, formatScore } from "../config";
 import {
   uploadMedia,
   uploadBlob,
@@ -13,6 +20,8 @@ import { compressVideo, splitIfNeeded } from "../lib/video";
 
 interface Props {
   offer: Offer;
+  /** Colocataire actif : son avis est éditable, les autres en lecture seule. */
+  me: string;
   onClose: () => void;
   onSave: (updated: Offer) => void;
 }
@@ -23,11 +32,17 @@ const newId = () => crypto.randomUUID();
 type DisplayItem = OfferMedia | { group: string; parts: OfferMedia[] };
 
 /** Modale d'édition des notes structurées d'une annonce. */
-export function OfferNotesModal({ offer, onClose, onSave }: Props) {
+export function OfferNotesModal({ offer, me, onClose, onSave }: Props) {
   const [visitDate, setVisitDate] = useState(offer.details?.visitDate ?? "");
   const [contacts, setContacts] = useState<OfferContact[]>(offer.details?.contacts ?? []);
   const [links, setLinks] = useState<OfferLink[]>(offer.details?.links ?? []);
   const [notes, setNotes] = useState(offer.notes ?? "");
+  // Avis : ceux des autres (lecture seule) + le mien (éditable).
+  const allReviews = offer.details?.reviews ?? [];
+  const myReview = allReviews.find((r) => r.author === me);
+  const [otherReviews] = useState<OfferReview[]>(allReviews.filter((r) => r.author !== me));
+  const [myScore, setMyScore] = useState<number | null>(myReview?.score ?? null);
+  const [myComment, setMyComment] = useState(myReview?.comment ?? "");
   const [media, setMedia] = useState<OfferMedia[]>(offer.details?.media ?? []);
   // URLs signées résolues pour l'affichage (path -> url temporaire).
   const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
@@ -152,13 +167,28 @@ export function OfferNotesModal({ offer, onClose, onSave }: Props) {
       .map((l) => ({ id: l.id, label: l.label?.trim() || undefined, url: l.url.trim() }))
       .filter((l) => l.url);
 
+    const reviews: OfferReview[] = [...otherReviews];
+    if (myScore !== null) {
+      reviews.push({
+        author: me,
+        score: myScore,
+        comment: myComment.trim() || undefined,
+        updatedAt: Date.now(),
+      });
+    }
+
     const details: OfferDetails = {};
     if (visitDate.trim()) details.visitDate = visitDate.trim();
     if (cleanContacts.length) details.contacts = cleanContacts;
     if (cleanLinks.length) details.links = cleanLinks;
     if (media.length) details.media = media;
+    if (reviews.length) details.reviews = reviews;
     const hasDetails =
-      details.visitDate || details.contacts || details.links || details.media;
+      details.visitDate ||
+      details.contacts ||
+      details.links ||
+      details.media ||
+      details.reviews;
 
     // Supprime du bucket les fichiers retirés (originaux ou téléversés puis ôtés).
     const kept = new Set(media.map((m) => m.path));
@@ -193,6 +223,13 @@ export function OfferNotesModal({ offer, onClose, onSave }: Props) {
       displayItems.push(m);
     }
   }
+
+  // Moyenne « live » (mon avis en cours + ceux des autres).
+  const liveReviews: OfferReview[] =
+    myScore !== null
+      ? [...otherReviews, { author: me, score: myScore, updatedAt: 0 }]
+      : otherReviews;
+  const avg = averageScore(liveReviews);
 
   return (
     <>
@@ -229,6 +266,65 @@ export function OfferNotesModal({ offer, onClose, onSave }: Props) {
               placeholder="mar. 1 juil. · 18h30"
             />
           </label>
+
+          <section className="notes-section">
+            <div className="notes-section-head">
+              <span>Avis</span>
+              {avg !== null && (
+                <span className="review-avg">Moyenne ★ {formatScore(avg)}/10</span>
+              )}
+            </div>
+
+            {myScore === null ? (
+              <button type="button" className="add-row" onClick={() => setMyScore(5)}>
+                + Donner mon avis ({me})
+              </button>
+            ) : (
+              <div className="my-review">
+                <div className="review-score-row">
+                  <span className="review-author">{me}</span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={10}
+                    step={1}
+                    value={myScore}
+                    onChange={(e) => setMyScore(Number(e.target.value))}
+                    className="review-range"
+                  />
+                  <span className="review-score-val">{myScore}/10</span>
+                  <button
+                    type="button"
+                    className="remove-row"
+                    aria-label="Retirer mon avis"
+                    onClick={() => {
+                      setMyScore(null);
+                      setMyComment("");
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+                <input
+                  value={myComment}
+                  onChange={(e) => setMyComment(e.target.value)}
+                  placeholder="Commentaire (optionnel)"
+                />
+              </div>
+            )}
+
+            {otherReviews.map((r) => (
+              <div key={r.author} className="other-review">
+                <span className="review-author">{r.author}</span>
+                <span className="review-score-val">{r.score}/10</span>
+                {r.comment && <span className="review-comment">— {r.comment}</span>}
+              </div>
+            ))}
+
+            {myScore === null && otherReviews.length === 0 && (
+              <p className="notes-empty">Aucun avis pour l'instant.</p>
+            )}
+          </section>
 
           <section className="notes-section">
             <div className="notes-section-head">

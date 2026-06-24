@@ -286,6 +286,7 @@ export default function App() {
       {notesOffer && (
         <OfferNotesModal
           offer={notesOffer}
+          me={me}
           onClose={() => setNotesOffer(null)}
           onSave={handleSaveNotes}
         />

@@ -419,6 +419,30 @@ body {
   color: var(--text);
 }
 .notes-empty { margin: 0; font-size: 12px; color: var(--muted); font-style: italic; }
+
+/* ---- Avis ---- */
+.review-avg { font-size: 12px; font-weight: 600; color: #22c55e; }
+.my-review { display: flex; flex-direction: column; gap: 6px; }
+.review-score-row { display: flex; align-items: center; gap: 8px; }
+.review-author { font-size: 12px; font-weight: 600; min-width: 56px; }
+.review-range { flex: 1; min-width: 0; accent-color: #22c55e; }
+.review-score-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: #22c55e;
+  min-width: 42px;
+  text-align: right;
+}
+.other-review {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.other-review .review-author { color: var(--text); min-width: 0; }
+.review-comment { color: var(--muted); }
+.review-badge { color: #22c55e; font-weight: 600; }
 .add-row {
   background: none;
   border: none;
