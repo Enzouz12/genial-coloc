@@ -51,15 +51,24 @@ export function OfferDetailPage() {
   if (offers === null) {
     return (
       <div className="offer-page">
-        <p className="empty">Chargement…</p>
+        <div className="offer-card centered">
+          <p className="empty">Chargement…</p>
+        </div>
       </div>
     );
   }
   if (!offer) {
     return (
       <div className="offer-page">
-        <Link to="/" className="back-link">← Retour</Link>
-        <p className="empty">Offre introuvable.</p>
+        <header className="offer-topbar">
+          <Link to="/" className="back-link">← Retour à la carte</Link>
+          <span className="topbar-brand">Génial Coloc</span>
+          <span />
+        </header>
+        <div className="offer-card centered">
+          <p className="empty">Offre introuvable.</p>
+          <Link to="/" className="back-link">Retour à la carte</Link>
+        </div>
       </div>
     );
   }
@@ -72,8 +81,9 @@ export function OfferDetailPage() {
 
   return (
     <div className="offer-page">
-      <div className="offer-page-top">
+      <header className="offer-topbar">
         <Link to="/" className="back-link">← Retour à la carte</Link>
+        <span className="topbar-brand">Génial Coloc</span>
         <label className="me-select">
           Je suis
           <select value={me} onChange={(e) => handleSetMe(e.target.value)}>
@@ -82,8 +92,9 @@ export function OfferDetailPage() {
             ))}
           </select>
         </label>
-      </div>
+      </header>
 
+      <div className="offer-card">
       <header className="offer-page-head">
         <h1>{offer.title}</h1>
         <div className="offer-page-meta">
@@ -136,6 +147,7 @@ export function OfferDetailPage() {
       </header>
 
       <OfferDetailEditor key={`${offer.id}-${me}`} offer={offer} me={me} onSave={handleSaveDetails} />
+      </div>
     </div>
   );
 }
