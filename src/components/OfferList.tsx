@@ -1,5 +1,5 @@
 import type { Offer, OfferStatus } from "../types";
-import { ROOMMATES, STATUSES, statusColor, averageScore, formatScore } from "../config";
+import { ROOMMATES, STATUSES, statusColor, averageScore, formatScore, scoreColor } from "../config";
 import { priceColor } from "../lib/color";
 import { distanceToCampusKm, commuteBucket } from "../lib/geo";
 
@@ -94,7 +94,11 @@ export function OfferList({
               {o.notes && <div className="offer-notes">{o.notes}</div>}
               {hasDetails && (
                 <div className="offer-details-summary">
-                  {avg !== null && <span className="review-badge">★ {formatScore(avg)}/10</span>}
+                  {avg !== null && (
+                    <span className="review-badge" style={{ background: scoreColor(avg) }}>
+                      ★ {formatScore(avg)}/10
+                    </span>
+                  )}
                   {d?.visitDate && <span>📅 {d.visitDate}</span>}
                   {nbContacts > 0 && <span>👤 {nbContacts}</span>}
                   {nbLinks > 0 && <span>🔗 {nbLinks}</span>}

@@ -76,3 +76,10 @@ export function averageScore(reviews: OfferReview[] | undefined): number | null 
 export function formatScore(n: number): string {
   return (Math.round(n * 10) / 10).toString().replace(".", ",");
 }
+
+/** Couleur d'une note 0-10 : vert (bon), ambre (moyen), rouge (faible). */
+export function scoreColor(score: number): string {
+  if (score >= 7) return "#22c55e";
+  if (score >= 4) return "#f59e0b";
+  return "#ef4444";
+}

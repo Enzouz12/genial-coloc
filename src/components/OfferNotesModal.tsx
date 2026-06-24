@@ -7,7 +7,7 @@ import type {
   OfferMedia,
   OfferReview,
 } from "../types";
-import { STATUSES, statusColor, averageScore, formatScore } from "../config";
+import { STATUSES, statusColor, averageScore, formatScore, scoreColor } from "../config";
 import {
   uploadMedia,
   uploadBlob,
@@ -271,40 +271,58 @@ export function OfferNotesModal({ offer, me, onClose, onSave }: Props) {
             <div className="notes-section-head">
               <span>Avis</span>
               {avg !== null && (
-                <span className="review-avg">Moyenne ★ {formatScore(avg)}/10</span>
+                <span className="review-avg">
+                  Moyenne
+                  <span className="review-chip" style={{ background: scoreColor(avg) }}>
+                    {formatScore(avg)}/10
+                  </span>
+                </span>
               )}
             </div>
 
+            {otherReviews.map((r) => (
+              <div key={r.author} className="review-card">
+                <span className="review-author">{r.author}</span>
+                <span className="review-chip" style={{ background: scoreColor(r.score) }}>
+                  {r.score}/10
+                </span>
+                {r.comment && <p className="review-comment">{r.comment}</p>}
+              </div>
+            ))}
+
             {myScore === null ? (
-              <button type="button" className="add-row" onClick={() => setMyScore(5)}>
+              <button type="button" className="add-row" onClick={() => setMyScore(7)}>
                 + Donner mon avis ({me})
               </button>
             ) : (
-              <div className="my-review">
-                <div className="review-score-row">
-                  <span className="review-author">{me}</span>
-                  <input
-                    type="range"
-                    min={0}
-                    max={10}
-                    step={1}
-                    value={myScore}
-                    onChange={(e) => setMyScore(Number(e.target.value))}
-                    className="review-range"
-                  />
-                  <span className="review-score-val">{myScore}/10</span>
+              <div className="review-card mine">
+                <div className="review-head">
+                  <span className="review-author">
+                    {me} <small>· toi</small>
+                  </span>
+                  <span className="review-chip" style={{ background: scoreColor(myScore) }}>
+                    {myScore}/10
+                  </span>
                   <button
                     type="button"
-                    className="remove-row"
-                    aria-label="Retirer mon avis"
+                    className="review-clear"
                     onClick={() => {
                       setMyScore(null);
                       setMyComment("");
                     }}
                   >
-                    ×
+                    retirer
                   </button>
                 </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={10}
+                  step={1}
+                  value={myScore}
+                  onChange={(e) => setMyScore(Number(e.target.value))}
+                  className="review-range"
+                />
                 <input
                   value={myComment}
                   onChange={(e) => setMyComment(e.target.value)}
@@ -312,14 +330,6 @@ export function OfferNotesModal({ offer, me, onClose, onSave }: Props) {
                 />
               </div>
             )}
-
-            {otherReviews.map((r) => (
-              <div key={r.author} className="other-review">
-                <span className="review-author">{r.author}</span>
-                <span className="review-score-val">{r.score}/10</span>
-                {r.comment && <span className="review-comment">— {r.comment}</span>}
-              </div>
-            ))}
 
             {myScore === null && otherReviews.length === 0 && (
               <p className="notes-empty">Aucun avis pour l'instant.</p>

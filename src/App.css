@@ -421,28 +421,63 @@ body {
 .notes-empty { margin: 0; font-size: 12px; color: var(--muted); font-style: italic; }
 
 /* ---- Avis ---- */
-.review-avg { font-size: 12px; font-weight: 600; color: #22c55e; }
-.my-review { display: flex; flex-direction: column; gap: 6px; }
-.review-score-row { display: flex; align-items: center; gap: 8px; }
-.review-author { font-size: 12px; font-weight: 600; min-width: 56px; }
-.review-range { flex: 1; min-width: 0; accent-color: #22c55e; }
-.review-score-val {
-  font-size: 13px;
-  font-weight: 700;
-  color: #22c55e;
-  min-width: 42px;
-  text-align: right;
+.review-avg {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
 }
-.other-review {
-  display: flex;
-  align-items: baseline;
+.review-chip {
+  color: #0f1115;
+  font-weight: 700;
+  font-size: 12px;
+  border-radius: 999px;
+  padding: 1px 9px;
+  white-space: nowrap;
+}
+.review-card {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
   gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-2);
+}
+.review-card .review-author { font-size: 13px; font-weight: 600; }
+.review-card .review-author small { color: var(--muted); font-weight: 400; }
+.review-card .review-comment {
+  grid-column: 1 / -1;
+  margin: 0;
   font-size: 12px;
   color: var(--muted);
 }
-.other-review .review-author { color: var(--text); min-width: 0; }
-.review-comment { color: var(--muted); }
-.review-badge { color: #22c55e; font-weight: 600; }
+.review-card.mine {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.review-head { display: flex; align-items: center; gap: 8px; }
+.review-head .review-chip { margin-left: auto; }
+.review-clear {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+}
+.review-clear:hover { color: var(--danger); }
+.review-range { width: 100%; accent-color: #22c55e; }
+.review-badge {
+  color: #0f1115;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0 8px;
+}
 .add-row {
   background: none;
   border: none;
