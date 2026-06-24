@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import type { Offer, OfferStatus } from "./types";
-import { ROOMMATES } from "./config";
+import { ROOMMATES, applyInterest } from "./config";
 import { store } from "./lib/storage";
 import { getMe, setMe as persistMe } from "./lib/identity";
 import { reverseGeocode, estimatedCommuteMinutes } from "./lib/geo";
@@ -8,7 +9,6 @@ import { routeToCampus } from "./lib/routing";
 import { MapView, type MapMode } from "./components/MapView";
 import { AddOfferForm } from "./components/AddOfferForm";
 import { OfferList } from "./components/OfferList";
-import { OfferNotesModal } from "./components/OfferNotesModal";
 import { Legend } from "./components/Legend";
 import { Filters, EMPTY_FILTERS, type FilterState } from "./components/Filters";
 import "./App.css";
@@ -22,24 +22,49 @@ const MODES: { id: MapMode; label: string }[] = [
 ];
 
 export default function App() {
+  const navigate = useNavigate();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [mode, setMode] = useState<MapMode>("price");
+  // Préférences d'exploration persistées (survivent à un aller-retour vers la
+  // page détail, qui démonte cette vue).
+  const [mode, setMode] = useState<MapMode>(
+    () => (localStorage.getItem("gc.mode") as MapMode) || "price"
+  );
   const [editing, setEditing] = useState<Offer | null>(null);
   const [pinpointMode, setPinpointMode] = useState(false);
   const [pinned, setPinned] = useState<{ label: string; key: number } | null>(null);
-  const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
+  const [filters, setFilters] = useState<FilterState>(() => {
+    try {
+      const raw = localStorage.getItem("gc.filters");
+      return raw ? (JSON.parse(raw) as FilterState) : EMPTY_FILTERS;
+    } catch {
+      return EMPTY_FILTERS;
+    }
+  });
   // Colocataire actif sur ce navigateur (pour le handshake d'intérêt).
   const [me, setMe] = useState<string>(getMe);
-  // Offre dont la modale de notes structurées est ouverte, sinon null.
-  const [notesOffer, setNotesOffer] = useState<Offer | null>(null);
   // Offre dont les temps de trajet sont en cours de recalcul.
   const [recalcId, setRecalcId] = useState<string | null>(null);
   // Onglet de la sidebar : « Ajouter » (saisie/édition) ou « Explorer » (filtres + liste).
   // L'import par extension (#offer=) ouvre directement sur l'onglet Ajouter.
   const [tab, setTab] = useState<"add" | "explore">(() =>
-    window.location.hash.startsWith("#offer=") ? "add" : "explore"
+    window.location.hash.startsWith("#offer=")
+      ? "add"
+      : (localStorage.getItem("gc.tab") as "add" | "explore") || "explore"
   );
+
+  useEffect(() => {
+    localStorage.setItem("gc.mode", mode);
+  }, [mode]);
+  useEffect(() => {
+    localStorage.setItem("gc.filters", JSON.stringify(filters));
+  }, [filters]);
+  useEffect(() => {
+    localStorage.setItem("gc.tab", tab);
+  }, [tab]);
+
+  // Ouvre la page dédiée d'une annonce.
+  const openOffer = (offer: Offer) => navigate(`/offre/${offer.id}`);
 
   // Offres après application des filtres (statut, loyer max, temps TCL max).
   const visibleOffers = useMemo(() => {
@@ -146,35 +171,9 @@ export default function App() {
     persistMe(name);
   }
 
-  // Enregistre les notes structurées d'une offre (mise à jour optimiste,
-  // sans bascule d'onglet/sélection), puis ferme la modale.
-  async function handleSaveNotes(updated: Offer) {
-    setOffers((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
-    // Garde le formulaire d'édition en phase si c'est la même offre (sinon un
-    // « Enregistrer » du formulaire réécraserait les notes/details fraîchement
-    // modifiés via la modale).
-    setEditing((e) => (e && e.id === updated.id ? updated : e));
-    setNotesOffer(null);
-    try {
-      await store.update(updated);
-    } catch {
-      setOffers(await store.getAll());
-    }
-  }
-
-  // Handshake : bascule l'intérêt de « moi » pour une offre. Quand les deux
-  // colocataires ont validé, l'offre passe en « à appeler » — mais seulement
-  // si elle était encore « nouvelle » (on n'écrase pas un statut posé à la
-  // main). On ne rétrograde jamais si un intérêt est ensuite retiré.
+  // Handshake : bascule l'intérêt de « moi » (logique partagée avec la page).
   async function handleToggleInterest(offer: Offer) {
-    const set = new Set(offer.interestedBy ?? []);
-    if (set.has(me)) set.delete(me);
-    else set.add(me);
-    const interestedBy = [...set];
-    const allIn = ROOMMATES.every((r) => set.has(r));
-    const status: OfferStatus =
-      allIn && (offer.status ?? "new") === "new" ? "to_call" : offer.status ?? "new";
-    const updated = { ...offer, interestedBy, status };
+    const updated = applyInterest(offer, me);
     setOffers((prev) => prev.map((o) => (o.id === offer.id ? updated : o)));
     try {
       await store.update(updated);
@@ -227,7 +226,7 @@ export default function App() {
             pinpointMode={pinpointMode}
             onTogglePinpoint={() => setPinpointMode((v) => !v)}
             pinnedLocation={pinned}
-            onOpenNotes={setNotesOffer}
+            onOpenNotes={openOffer}
           />
         </div>
 
@@ -246,7 +245,7 @@ export default function App() {
             onSelect={selectOffer}
             onSetStatus={handleSetStatus}
             onToggleInterest={handleToggleInterest}
-            onOpenNotes={setNotesOffer}
+            onOpenNotes={openOffer}
             onRemove={handleRemove}
             onRecalcTimes={handleRecalcTimes}
             recalcId={recalcId}
@@ -275,22 +274,13 @@ export default function App() {
           me={me}
           onSelect={selectOffer}
           onToggleInterest={handleToggleInterest}
-          onOpenNotes={setNotesOffer}
+          onOpenNotes={openOffer}
           onBackgroundClick={() => selectOffer(null)}
           onPinpoint={handlePinpoint}
           pinpointMode={pinpointMode}
           mode={mode}
         />
       </main>
-
-      {notesOffer && (
-        <OfferNotesModal
-          offer={notesOffer}
-          me={me}
-          onClose={() => setNotesOffer(null)}
-          onSave={handleSaveNotes}
-        />
-      )}
     </div>
   );
 }

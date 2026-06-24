@@ -1,5 +1,5 @@
 // Constantes métier de Génial Coloc.
-import type { OfferStatus, OfferReview } from "./types";
+import type { Offer, OfferStatus, OfferReview } from "./types";
 
 /** Point de référence : Université Lyon 2 — Campus Porte des Alpes (Bron). */
 export const CAMPUS = {
@@ -82,4 +82,20 @@ export function scoreColor(score: number): string {
   if (score >= 7) return "#22c55e";
   if (score >= 4) return "#f59e0b";
   return "#ef4444";
+}
+
+/**
+ * Handshake : bascule l'intérêt de `me` pour une offre. Quand les deux
+ * colocataires ont validé, l'offre passe en « à appeler » — mais seulement si
+ * elle était encore « nouvelle » (on n'écrase pas un statut posé à la main).
+ * On ne rétrograde jamais si un intérêt est ensuite retiré.
+ */
+export function applyInterest(offer: Offer, me: string): Offer {
+  const set = new Set(offer.interestedBy ?? []);
+  if (set.has(me)) set.delete(me);
+  else set.add(me);
+  const allIn = ROOMMATES.every((r) => set.has(r));
+  const status: OfferStatus =
+    allIn && (offer.status ?? "new") === "new" ? "to_call" : offer.status ?? "new";
+  return { ...offer, interestedBy: [...set], status };
 }
