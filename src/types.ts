@@ -57,6 +57,7 @@ export type OfferStatus =
   | "new"
   | "to_call"
   | "pending"
+  | "reviewing"
   | "to_visit"
   | "visited"
   | "favorite"
